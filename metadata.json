@@ -1,0 +1,6 @@
+{
+  "name": "Dashboard Comercial",
+  "description": "Plataforma ejecutiva de análisis comercial de objetivos, ventas y cobertura, con importación Excel mensual, agregaciones dimensionales y persistencia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
