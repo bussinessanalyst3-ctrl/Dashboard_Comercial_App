@@ -185,7 +185,6 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     }
   };
 
-  // Reset database back to baseline
   const handleResetData = () => {
     if (!confirm('¿Confirma que desea restablecer la base de datos comercial al estado inicial de fábrica (sept-26 + histórico)?')) {
       return;
@@ -199,12 +198,12 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono text-xs">
       {/* RBAC Notice if Consulta Role */}
       {!isAdmin && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 shadow-2xs">
+        <div className="border border-[#F59E0B]/30 bg-[#F59E0B]/10 p-4 text-[#F59E0B]">
           <div className="flex items-center gap-2 font-bold mb-1">
-            <ShieldAlert className="h-4 w-4 text-amber-600" />
+            <ShieldAlert className="h-4 w-4" />
             Acceso en Modo Consulta (Solo Lectura)
           </div>
           <p>
@@ -214,32 +213,33 @@ export const DataManagement: React.FC<DataManagementProps> = ({
       )}
 
       {/* Main Container */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className="border border-[#242C37] bg-[#12161C] p-5">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-[#242C37]">
           <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Upload className="h-5 w-5 text-slate-700" />
-              Gestión de Datos & Importación Mensual
+            <div className="flex items-center gap-2 text-[10px] text-[#626D7C] uppercase tracking-wider">
+              <span>INGESTA DE DATOS Y GESTIÓN DE LOTES</span>
+              <span>/</span>
+              <span className="text-[#C5F467] font-bold">OPERACIONES ATÓMICAS</span>
+            </div>
+            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+              Gestión de Datos Mensuales & Reemplazo Idempotente
             </h2>
-            <p className="text-xs text-slate-500">
-              Procesamiento de archivos Excel (.xlsx, .xls) con las 3 hojas (DB_Objetivos, DB_Cobertura, DB_Ventas) o archivos CSV normalizados.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={generateSampleExcelTemplate}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
-              title="Descargar archivo Excel con las 3 hojas preformateadas"
+              className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#0B0D10] px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9] transition-colors"
+              title="Descargar libro Excel con las 3 hojas preformateadas"
             >
-              <Download className="h-3.5 w-3.5 text-slate-500" />
+              <Download className="h-3.5 w-3.5 text-[#626D7C]" />
               Descargar Plantilla Excel (.xlsx)
             </button>
 
             {isAdmin && (
               <button
                 onClick={handleResetData}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+                className="inline-flex items-center gap-1.5 border border-[#FB7185]/30 bg-[#FB7185]/10 px-3 py-1.5 text-xs text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors"
                 title="Restablecer datos originales"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -251,16 +251,16 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
         {/* Upload Zone */}
         <div className="mt-5">
-          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-6 text-center hover:bg-slate-50 transition-colors">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 mb-3">
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#242C37] bg-[#0B0D10]/50 p-6 text-center hover:bg-[#0B0D10] transition-colors">
+            <div className="flex h-12 w-12 items-center justify-center border border-[#242C37] bg-[#12161C] text-[#C5F467] mb-3">
               <FileSpreadsheet className="h-6 w-6" />
             </div>
 
-            <div className="text-sm font-semibold text-slate-900">
+            <div className="text-sm font-bold text-[#F1F5F9]">
               Seleccione el archivo mensual de objetivos, ventas y cobertura
             </div>
-            <p className="mt-1 text-xs text-slate-500 max-w-md">
-              Soporta archivos Excel (.xlsx, .xls) con hojas <strong>DB_Objetivos</strong>, <strong>DB_Cobertura</strong> y <strong>DB_Ventas</strong>, o CSVs normalizados.
+            <p className="mt-1 text-xs text-[#929EAD] max-w-md font-sans">
+              Soporta libros Excel (.xlsx, .xls) con las 3 hojas: <strong>DB_Objetivos</strong>, <strong>DB_Cobertura</strong> y <strong>DB_Ventas</strong>, o archivos CSV normalizados.
             </p>
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
@@ -273,10 +273,10 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                   className="sr-only"
                 />
                 <span
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold shadow-xs transition-colors ${
+                  className={`inline-flex items-center gap-2 border px-4 py-2 text-xs font-bold transition-colors ${
                     isAdmin
-                      ? 'bg-slate-900 text-white hover:bg-slate-800'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      ? 'border-[#C5F467]/50 bg-[#C5F467] text-[#0B0D10] hover:bg-[#b8eb58]'
+                      : 'border-[#242C37] bg-[#191F27] text-[#626D7C] cursor-not-allowed'
                   }`}
                 >
                   <Upload className="h-4 w-4" />
@@ -287,20 +287,20 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               <button
                 onClick={handleLoadBuiltinCsv}
                 disabled={!isAdmin}
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold shadow-2xs transition-colors ${
+                className={`inline-flex items-center gap-1.5 border border-[#242C37] bg-[#12161C] px-3 py-2 text-xs font-semibold transition-colors ${
                   isAdmin
-                    ? 'text-slate-700 hover:bg-slate-100'
-                    : 'text-slate-400 cursor-not-allowed'
+                    ? 'text-[#F1F5F9] hover:border-[#333D4D]'
+                    : 'text-[#626D7C] cursor-not-allowed'
                 }`}
               >
-                <FileText className="h-4 w-4 text-emerald-600" />
+                <FileText className="h-4 w-4 text-[#38BDF8]" />
                 Cargar sep_26_normalizada.csv
               </button>
             </div>
 
             {isParsing && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-slate-600">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+              <div className="mt-3 flex items-center gap-2 text-xs text-[#929EAD]">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#C5F467] border-t-transparent" />
                 Analizando estructura y normalizando datos con SheetJS...
               </div>
             )}
@@ -310,26 +310,22 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         {/* Execution Result Notification */}
         {executionResult && (
           <div
-            className={`mt-4 rounded-xl border p-4 text-xs ${
+            className={`mt-4 border p-4 text-xs ${
               executionResult.success
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                : 'border-rose-200 bg-rose-50 text-rose-900'
+                ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
+                : 'border-[#FB7185]/40 bg-[#FB7185]/10 text-[#FB7185]'
             }`}
           >
             <div className="flex items-center gap-2 font-bold mb-1">
-              {executionResult.success ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              ) : (
-                <AlertTriangle className="h-4 w-4 text-rose-600" />
-              )}
+              {executionResult.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
               {executionResult.success ? 'Operación Exitosa' : 'Aviso en la Operación'}
             </div>
-            <p>{executionResult.message}</p>
-            <div className="mt-2 pt-2 border-t border-emerald-200/40 flex items-center justify-between">
-              <span className="font-medium">Registrado en la auditoría del sistema.</span>
+            <p className="font-sans text-slate-200">{executionResult.message}</p>
+            <div className="mt-2 pt-2 border-t border-[#242C37] flex items-center justify-between">
+              <span className="text-[#929EAD]">Transacción inmutable registrada en auditoría.</span>
               <button
                 onClick={onSwitchToAudit}
-                className="font-bold underline hover:text-emerald-950"
+                className="font-bold underline text-[#C5F467]"
               >
                 Ver registro en Auditoría →
               </button>
@@ -339,16 +335,16 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
         {/* PREVIEW & MODALITY SELECTION */}
         {preview && (
-          <div className="mt-6 space-y-5 border-t border-slate-200 pt-5">
+          <div className="mt-6 space-y-5 border-t border-[#242C37] pt-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900">
-                Vista Previa y Validación de Carga: {preview.filename}
+              <h3 className="text-sm font-bold text-[#F1F5F9]">
+                Vista Previa de Carga: {preview.filename}
               </h3>
               <span
-                className={`text-xs font-bold px-2 py-0.5 rounded ${
+                className={`text-xs font-bold px-2 py-0.5 border ${
                   preview.isValid
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-rose-100 text-rose-800'
+                    ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
+                    : 'border-[#FB7185]/40 bg-[#FB7185]/10 text-[#FB7185]'
                 }`}
               >
                 {preview.isValid ? 'Estructura Validada' : 'Estructura Inválida'}
@@ -357,30 +353,30 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
             {/* Validation Checklist Grid */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase">Hojas Detectadas</div>
-                <div className="mt-1 text-xs font-bold text-slate-900">
+              <div className="border border-[#242C37] bg-[#0B0D10] p-3">
+                <div className="text-[10px] text-[#626D7C] uppercase">Hojas Detectadas</div>
+                <div className="mt-1 text-xs font-bold text-[#F1F5F9]">
                   {preview.detectedSheets.length > 0 ? preview.detectedSheets.join(', ') : 'Ninguna'}
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase">Períodos Afectados</div>
-                <div className="mt-1 text-xs font-bold text-slate-900 font-mono">
+              <div className="border border-[#242C37] bg-[#0B0D10] p-3">
+                <div className="text-[10px] text-[#626D7C] uppercase">Períodos Identificados</div>
+                <div className="mt-1 text-xs font-bold text-[#C5F467]">
                   {preview.periodos.length > 0 ? preview.periodos.join(', ') : 'No detectado'}
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase">Filas Identificadas</div>
-                <div className="mt-1 text-xs text-slate-700">
-                  <strong>{preview.ventasCount}</strong> ventas · <strong>{preview.objetivosCount}</strong> obj · <strong>{preview.coberturaCount}</strong> cob
+              <div className="border border-[#242C37] bg-[#0B0D10] p-3">
+                <div className="text-[10px] text-[#626D7C] uppercase">Filas Identificadas</div>
+                <div className="mt-1 text-xs text-[#F1F5F9]">
+                  {preview.ventasCount} ventas · {preview.objetivosCount} obj · {preview.coberturaCount} cob
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase">Advertencias</div>
-                <div className="mt-1 text-xs font-bold text-slate-900">
+              <div className="border border-[#242C37] bg-[#0B0D10] p-3">
+                <div className="text-[10px] text-[#626D7C] uppercase">Advertencias</div>
+                <div className="mt-1 text-xs font-bold text-[#F1F5F9]">
                   {preview.issues.length} observaciones
                 </div>
               </div>
@@ -388,13 +384,13 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
             {/* Issues Log */}
             {preview.issues.length > 0 && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 space-y-1 text-xs text-amber-900">
+              <div className="border border-[#F59E0B]/30 bg-[#F59E0B]/10 p-3 space-y-1 text-xs text-[#F59E0B]">
                 <div className="font-bold flex items-center gap-1.5 mb-1">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                  <AlertTriangle className="h-3.5 w-3.5" />
                   Observaciones de validación:
                 </div>
                 {preview.issues.map((iss, i) => (
-                  <div key={i} className="text-[11px]">
+                  <div key={i} className="text-[11px] font-sans">
                     · [{iss.hoja}] {iss.fila ? `Fila ${iss.fila}: ` : ''}{iss.mensaje}
                   </div>
                 ))}
@@ -402,23 +398,23 @@ export const DataManagement: React.FC<DataManagementProps> = ({
             )}
 
             {/* MODALITY SELECTION */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+            <div className="border border-[#242C37] bg-[#0B0D10] p-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#929EAD] mb-3">
                 Seleccione la Modalidad de Importación:
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Option A: Append */}
                 <label
-                  className={`flex flex-col justify-between rounded-lg border p-4 cursor-pointer transition-all ${
+                  className={`flex flex-col justify-between border p-4 cursor-pointer transition-all ${
                     operationType === 'append'
-                      ? 'border-slate-900 bg-white ring-1 ring-slate-900 shadow-xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-[#C5F467] bg-[#12161C]'
+                      : 'border-[#242C37] bg-[#12161C]/50 hover:border-[#333D4D]'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-[#F1F5F9]">
                         Modalidad A: Agregar nuevos períodos / registros
                       </span>
                       <input
@@ -426,29 +422,29 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                         name="opType"
                         checked={operationType === 'append'}
                         onChange={() => setOperationType('append')}
-                        className="h-4 w-4 text-slate-900"
+                        className="h-4 w-4 accent-[#C5F467]"
                       />
                     </div>
-                    <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
+                    <p className="mt-2 text-[11px] text-[#929EAD] font-sans leading-relaxed">
                       Inserta nuevos meses manteniendo intactos los períodos existentes. Detecta registros ya importados mediante clave única y previene duplicados.
                     </p>
                   </div>
-                  <div className="mt-3 text-[10px] font-semibold text-emerald-700">
+                  <div className="mt-3 text-[10px] font-semibold text-[#C5F467]">
                     ✓ Idempotente y seguro para cargas acumulativas
                   </div>
                 </label>
 
                 {/* Option B: Replace */}
                 <label
-                  className={`flex flex-col justify-between rounded-lg border p-4 cursor-pointer transition-all ${
+                  className={`flex flex-col justify-between border p-4 cursor-pointer transition-all ${
                     operationType === 'replace'
-                      ? 'border-rose-700 bg-white ring-1 ring-rose-700 shadow-xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-[#FB7185] bg-[#12161C]'
+                      : 'border-[#242C37] bg-[#12161C]/50 hover:border-[#333D4D]'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-[#F1F5F9]">
                         Modalidad B: Reemplazar un período existente
                       </span>
                       <input
@@ -456,14 +452,14 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                         name="opType"
                         checked={operationType === 'replace'}
                         onChange={() => setOperationType('replace')}
-                        className="h-4 w-4 text-rose-700"
+                        className="h-4 w-4 accent-[#FB7185]"
                       />
                     </div>
-                    <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
+                    <p className="mt-2 text-[11px] text-[#929EAD] font-sans leading-relaxed">
                       Reemplaza exclusivamente los datos del período seleccionado en las fuentes elegidas. Los demás meses y fuentes permanecen intactos.
                     </p>
                   </div>
-                  <div className="mt-3 text-[10px] font-semibold text-rose-700">
+                  <div className="mt-3 text-[10px] font-semibold text-[#FB7185]">
                     ⚠ Requiere confirmación explícita antes de ejecutar
                   </div>
                 </label>
@@ -471,20 +467,20 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
               {/* Replace Mode Extra Options */}
               {operationType === 'replace' && (
-                <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50/50 p-3 space-y-3">
-                  <div className="text-xs font-bold text-rose-950">
+                <div className="mt-4 border border-[#FB7185]/30 bg-[#12161C] p-3 space-y-3">
+                  <div className="text-xs font-bold text-[#FB7185]">
                     Configuración del Reemplazo Atómico:
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      <label className="block text-[10px] text-[#626D7C] uppercase mb-1">
                         Período que será reemplazado:
                       </label>
                       <select
                         value={targetPeriodToReplace}
                         onChange={e => setTargetPeriodToReplace(e.target.value)}
-                        className="h-8 w-full rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-900"
+                        className="h-8 w-full border border-[#242C37] bg-[#0B0D10] px-2 text-xs font-bold text-[#F1F5F9]"
                       >
                         {Array.from(
                           new Set([
@@ -493,17 +489,17 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                           ])
                         ).map(p => (
                           <option key={p} value={p}>
-                            {formatPeriodDisplay(p)} ({p})
+                            {formatPeriodDisplay(p).toUpperCase()} ({p})
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      <label className="block text-[10px] text-[#626D7C] uppercase mb-1">
                         Fuentes a reemplazar:
                       </label>
-                      <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-4 text-xs text-[#F1F5F9]">
                         <label className="flex items-center gap-1.5 cursor-pointer">
                           <input
                             type="checkbox"
@@ -511,6 +507,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                             onChange={e =>
                               setSourcesToReplace({ ...sourcesToReplace, ventas: e.target.checked })
                             }
+                            className="accent-[#C5F467]"
                           />
                           <span>Ventas</span>
                         </label>
@@ -524,6 +521,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                                 objetivos: e.target.checked
                               })
                             }
+                            className="accent-[#C5F467]"
                           />
                           <span>Objetivos</span>
                         </label>
@@ -537,6 +535,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                                 cobertura: e.target.checked
                               })
                             }
+                            className="accent-[#C5F467]"
                           />
                           <span>Cobertura</span>
                         </label>
@@ -548,13 +547,13 @@ export const DataManagement: React.FC<DataManagementProps> = ({
             </div>
 
             {/* Confirm & Execute Button */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#242C37]">
               <button
                 onClick={() => {
                   setSelectedFile(null);
                   setPreview(null);
                 }}
-                className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900"
+                className="px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9]"
               >
                 Cancelar
               </button>
@@ -568,10 +567,10 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                   }
                 }}
                 disabled={!isAdmin}
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors ${
+                className={`inline-flex items-center gap-2 border px-4 py-2 text-xs font-bold transition-colors ${
                   operationType === 'replace'
-                    ? 'bg-rose-700 hover:bg-rose-800'
-                    : 'bg-slate-900 hover:bg-slate-800'
+                    ? 'border-[#FB7185]/50 bg-[#FB7185] text-[#0B0D10] hover:bg-[#f43f5e]'
+                    : 'border-[#C5F467]/50 bg-[#C5F467] text-[#0B0D10] hover:bg-[#b8eb58]'
                 }`}
               >
                 <ArrowRight className="h-4 w-4" />
@@ -586,47 +585,47 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
       {/* CONFIRMATION MODAL FOR REPLACE OPERATION */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
-            <div className="flex items-center gap-3 text-rose-700 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md border border-[#FB7185]/50 bg-[#12161C] p-6 text-xs font-mono shadow-2xl">
+            <div className="flex items-center gap-3 text-[#FB7185] mb-3">
+              <div className="flex h-10 w-10 items-center justify-center border border-[#FB7185]/30 bg-[#FB7185]/10">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-[#F1F5F9]">
                   ¿Confirmar reemplazo de datos comerciales?
                 </h3>
-                <span className="text-xs text-rose-700 font-semibold">
+                <span className="text-xs text-[#FB7185]">
                   Operación destructiva para el período seleccionado
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-[#929EAD] font-sans leading-relaxed">
               Está a punto de <strong>reemplazar permanentemente</strong> los registros del período{' '}
-              <strong>{formatPeriodDisplay(targetPeriodToReplace)} ({targetPeriodToReplace})</strong> en las fuentes seleccionadas:
+              <strong className="text-[#F1F5F9]">{formatPeriodDisplay(targetPeriodToReplace)} ({targetPeriodToReplace})</strong> en las fuentes seleccionadas:
             </p>
 
-            <ul className="mt-2 space-y-1 text-xs text-slate-700 list-disc list-inside">
+            <ul className="mt-2 space-y-1 text-slate-300 list-disc list-inside font-sans">
               {sourcesToReplace.ventas && <li>Se eliminarán las ventas previas de {targetPeriodToReplace} y se insertarán las nuevas.</li>}
               {sourcesToReplace.objetivos && <li>Se eliminarán los objetivos previos de {targetPeriodToReplace} y se insertarán los nuevos.</li>}
               {sourcesToReplace.cobertura && <li>Se eliminará la cobertura previa de {targetPeriodToReplace} y se insertará la nueva.</li>}
             </ul>
 
-            <div className="mt-3 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+            <div className="mt-3 border border-[#242C37] bg-[#0B0D10] p-2.5 text-[11px] text-[#626D7C]">
               ✓ Los demás meses y fuentes no seleccionadas permanecerán intactos en la base de datos.
             </div>
 
             <div className="mt-5 flex items-center justify-end gap-2">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+                className="px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9]"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleExecuteImport}
-                className="rounded-lg bg-rose-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-rose-800 transition-colors"
+                className="border border-[#FB7185]/50 bg-[#FB7185] px-4 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#f43f5e] transition-colors"
               >
                 Sí, Reemplazar Período
               </button>

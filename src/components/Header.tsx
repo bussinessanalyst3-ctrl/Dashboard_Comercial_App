@@ -4,10 +4,10 @@ import {
   Download,
   Shield,
   Eye,
-  Database,
   Calendar,
-  Building,
-  TrendingUp
+  Layers,
+  Database,
+  Filter
 } from 'lucide-react';
 import { UserRole, VentaRecord, ObjetivoRecord, CoberturaRecord } from '../types/commercial';
 import { formatPeriodDisplay, exportToExcel } from '../services/dataNormalizer';
@@ -21,6 +21,8 @@ interface HeaderProps {
   ventas: VentaRecord[];
   objetivos: ObjetivoRecord[];
   cobertura: CoberturaRecord[];
+  onToggleFilters?: () => void;
+  isFiltersOpen?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,81 +33,99 @@ export const Header: React.FC<HeaderProps> = ({
   supabaseConnected,
   ventas,
   objetivos,
-  cobertura
+  cobertura,
+  onToggleFilters,
+  isFiltersOpen
 }) => {
   const handleExportFilteredExcel = () => {
     exportToExcel(
       objetivos,
       ventas,
       cobertura,
-      `Dashboard_Comercial_${currentPeriod}_${Date.now()}.xlsx`
+      `Analytics_Studio_${currentPeriod}_${Date.now()}.xlsx`
     );
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-xs sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-[#242C37] bg-[#0B0D10]/95 px-4 backdrop-blur-xs sm:px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenMobileMenu}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
+          className="p-1.5 border border-[#242C37] text-[#929EAD] hover:text-[#F1F5F9] lg:hidden"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         </button>
 
-        <div className="hidden sm:flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-slate-500" />
-          <span className="text-xs font-bold text-slate-900">
+        <div className="flex items-center gap-2 font-mono text-xs">
+          <Calendar className="h-3.5 w-3.5 text-[#626D7C]" />
+          <span className="text-[#929EAD]">PERÍODO ACTIVO:</span>
+          <span className="font-bold text-[#F1F5F9]">
             {currentPeriod === 'TODOS'
-              ? 'Todos los Períodos'
-              : formatPeriodDisplay(currentPeriod)}
+              ? 'TODOS LOS PERÍODOS'
+              : `${formatPeriodDisplay(currentPeriod).toUpperCase()}`}
           </span>
-          <span className="text-xs text-slate-400">({currentPeriod})</span>
+          <span className="text-[#626D7C]">({currentPeriod})</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 font-mono text-xs">
+        {/* Toggle Filters Button */}
+        {onToggleFilters && (
+          <button
+            onClick={onToggleFilters}
+            className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-xs transition-colors ${
+              isFiltersOpen
+                ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
+                : 'border-[#242C37] bg-[#12161C] text-[#929EAD] hover:text-[#F1F5F9]'
+            }`}
+          >
+            <Filter className="h-3 w-3" />
+            <span className="hidden sm:inline">Panel de Filtros</span>
+          </button>
+        )}
+
         {/* Export Excel Button */}
         <button
           onClick={handleExportFilteredExcel}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#12161C] px-2.5 py-1 text-xs text-[#929EAD] hover:text-[#F1F5F9] hover:border-[#333D4D] transition-colors"
           title="Descargar libro Excel con las 3 hojas del período activo"
         >
-          <Download className="h-3.5 w-3.5 text-slate-500" />
+          <Download className="h-3 w-3" />
           <span className="hidden sm:inline">Exportar Excel</span>
         </button>
 
         {/* Supabase status badge */}
         <div
-          className={`hidden sm:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+          className={`hidden sm:inline-flex items-center gap-1.5 border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
             supabaseConnected
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-slate-200 bg-slate-50 text-slate-600'
+              ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
+              : 'border-[#242C37] bg-[#12161C] text-[#626D7C]'
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              supabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+              supabaseConnected ? 'bg-[#C5F467] animate-pulse' : 'bg-[#626D7C]'
             }`}
           />
-          {supabaseConnected ? 'Supabase Conectado' : 'Local Persistence'}
+          {supabaseConnected ? 'Supabase' : 'Local'}
         </div>
 
-        {/* User Role Badge / Switcher */}
+        {/* User Role Switcher */}
         <button
           onClick={onToggleRole}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-colors ${
+          className={`inline-flex items-center gap-1.5 border px-2 py-1 text-xs font-bold transition-colors ${
             userRole === 'admin'
-              ? 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
-              : 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'
+              ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
+              : 'border-[#242C37] bg-[#12161C] text-[#929EAD]'
           }`}
-          title="Click para alternar entre Administrador y Consulta"
+          title="Click para alternar rol de usuario (Admin / Consulta)"
         >
           {userRole === 'admin' ? (
-            <Shield className="h-3.5 w-3.5 text-amber-600" />
+            <Shield className="h-3 w-3 text-[#C5F467]" />
           ) : (
-            <Eye className="h-3.5 w-3.5 text-slate-500" />
+            <Eye className="h-3 w-3 text-[#626D7C]" />
           )}
-          <span>{userRole === 'admin' ? 'Admin' : 'Consulta'}</span>
+          <span className="uppercase">{userRole}</span>
         </button>
       </div>
     </header>

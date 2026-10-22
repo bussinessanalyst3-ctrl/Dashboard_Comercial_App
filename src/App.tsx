@@ -19,11 +19,14 @@ import {
   getHistoricalTimeline
 } from './services/calculations';
 import { testSupabaseConnection } from './services/supabaseClient';
+import { AppTheme } from './styles/theme';
 import { Sidebar, ActiveTab } from './components/Sidebar';
 import { Header } from './components/Header';
 import { GlobalFilters } from './components/GlobalFilters';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { DimensionalAnalysis } from './components/DimensionalAnalysis';
+import { SalesIntelligenceView } from './components/analytics/SalesIntelligenceView';
+import { CoverageIntelligenceView } from './components/analytics/CoverageIntelligenceView';
 import { RankingsView } from './components/RankingsView';
 import { HistoricalComparison } from './components/HistoricalComparison';
 import { DataManagement } from './components/DataManagement';
@@ -32,9 +35,11 @@ import { SupabaseConfigView } from './components/SupabaseConfigView';
 
 export default function App() {
   const [dbState, setDbState] = useState<DatabaseState>(() => loadDatabase());
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(true);
+  const [theme, setTheme] = useState<AppTheme>('dark');
 
   // Initial Filter State
   const [filters, setFilters] = useState<FilterState>({
@@ -149,8 +154,33 @@ export default function App() {
     setDbState(updated);
   };
 
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Cross-filtering shortcuts
+  const handleSelectZone = (zone: string) => {
+    setFilters(prev => ({ ...prev, zona: zone }));
+  };
+
+  const handleSelectProduct = (product: string) => {
+    setFilters(prev => ({ ...prev, producto: product }));
+  };
+
+  const handleSelectRoute = (route: string) => {
+    setFilters(prev => ({ ...prev, codigoRuta: route }));
+  };
+
+  const handleSelectSupervisor = (supervisor: string) => {
+    setFilters(prev => ({ ...prev, supervisor: supervisor }));
+  };
+
+  const handleSelectVendor = (vendor: string) => {
+    setFilters(prev => ({ ...prev, vendedor: vendor }));
+  };
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased">
+    <div className={`flex h-screen w-screen overflow-hidden ${theme === 'light' ? 'theme-light bg-[#F8FAFC] text-[#0F172A]' : 'bg-[#0B0D10] text-[#F1F5F9]'}`}>
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -160,9 +190,11 @@ export default function App() {
         supabaseConnected={supabaseConnected}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
-      {/* Main Content Area */}
+      {/* Main Analysis Surface */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top Header */}
         <Header
@@ -174,13 +206,15 @@ export default function App() {
           ventas={filteredVentas}
           objetivos={filteredObjetivos}
           cobertura={filteredCobertura}
+          onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+          isFiltersOpen={isFiltersOpen}
         />
 
         {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7">
           <div className="mx-auto max-w-7xl space-y-6">
-            {/* Show Global Filters on analytical views */}
-            {['dashboard', 'dimensional', 'rankings'].includes(activeTab) && (
+            {/* Collapsible Global Filters */}
+            {['overview', 'sales', 'goals', 'coverage', 'rankings'].includes(activeTab) && isFiltersOpen && (
               <GlobalFilters
                 filters={filters}
                 onFilterChange={setFilters}
@@ -198,21 +232,40 @@ export default function App() {
               />
             )}
 
-            {/* TAB CONTENTS */}
-            {activeTab === 'dashboard' && (
+            {/* TAB 1: OVERVIEW / EXECUTIVE DASHBOARD */}
+            {activeTab === 'overview' && (
               <ExecutiveDashboard
                 kpis={kpis}
                 filters={filters}
                 zoneAggs={zoneAggs}
                 supervisorAggs={supervisorAggs}
                 productAggs={productAggs}
+                routeAggs={routeAggs}
                 timeline={timeline}
+                totalVentasCount={filteredVentas.length}
+                supabaseConnected={supabaseConnected}
                 onSelectPeriod={p => setFilters({ ...filters, periodo: p })}
-                onSelectZone={z => setFilters({ ...filters, zona: z })}
+                onSelectZone={handleSelectZone}
+                onSelectProduct={handleSelectProduct}
+                onSelectRoute={handleSelectRoute}
+                onSelectSupervisor={handleSelectSupervisor}
               />
             )}
 
-            {activeTab === 'dimensional' && (
+            {/* TAB 2: SALES INTELLIGENCE STUDIO */}
+            {activeTab === 'sales' && (
+              <SalesIntelligenceView
+                productAggs={productAggs}
+                routeAggs={routeAggs}
+                zoneAggs={zoneAggs}
+                kpis={kpis}
+                onSelectProduct={handleSelectProduct}
+                onSelectRoute={handleSelectRoute}
+              />
+            )}
+
+            {/* TAB 3: OBJETIVOS & CUMPLIMIENTO / DIMENSIONAL */}
+            {activeTab === 'goals' && (
               <DimensionalAnalysis
                 zoneAggs={zoneAggs}
                 supervisorAggs={supervisorAggs}
@@ -222,16 +275,31 @@ export default function App() {
               />
             )}
 
+            {/* TAB 4: COBERTURA STUDIO */}
+            {activeTab === 'coverage' && (
+              <CoverageIntelligenceView
+                routeAggs={routeAggs}
+                supervisorAggs={supervisorAggs}
+                zoneAggs={zoneAggs}
+                kpis={kpis}
+                onSelectRoute={handleSelectRoute}
+              />
+            )}
+
+            {/* TAB 5: RANKINGS & PARETO */}
             {activeTab === 'rankings' && (
               <RankingsView
                 vendorAggs={vendorAggs}
                 routeAggs={routeAggs}
                 productAggs={productAggs}
                 supervisorAggs={supervisorAggs}
+                onSelectVendor={handleSelectVendor}
+                onSelectRoute={handleSelectRoute}
               />
             )}
 
-            {activeTab === 'comparisons' && (
+            {/* TAB 6: HISTORIAL & COMPARATIVAS (MoM & YoY) */}
+            {activeTab === 'history' && (
               <HistoricalComparison
                 timeline={timeline}
                 currentPeriod={filters.periodo}
@@ -239,6 +307,7 @@ export default function App() {
               />
             )}
 
+            {/* TAB 7: DATA MANAGEMENT / IMPORT */}
             {activeTab === 'import' && (
               <DataManagement
                 dbState={dbState}
@@ -248,6 +317,7 @@ export default function App() {
               />
             )}
 
+            {/* TAB 8: AUDITORÍA */}
             {activeTab === 'audit' && (
               <AuditLogView
                 batches={dbState.batches}
@@ -255,6 +325,7 @@ export default function App() {
               />
             )}
 
+            {/* TAB 9: SUPABASE & SQL */}
             {activeTab === 'supabase' && (
               <SupabaseConfigView
                 onConnectionStatusChange={setSupabaseConnected}
