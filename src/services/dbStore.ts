@@ -344,8 +344,8 @@ export function executeReplacePeriodImport(
   let newObjList = [...currentState.objetivos];
   let newCobList = [...currentState.cobertura];
 
-  // 1. Replace Ventas if selected
-  if (fuentesToReplace.includes('ventas')) {
+  // 1. Replace Ventas if selected and incoming rows exist
+  if (fuentesToReplace.includes('ventas') && newVentas.length > 0) {
     const prevCount = newVentasList.length;
     newVentasList = newVentasList.filter(v => v.periodo_mes !== targetPeriod);
     delV = prevCount - newVentasList.length;
@@ -368,8 +368,8 @@ export function executeReplacePeriodImport(
     });
   }
 
-  // 2. Replace Objetivos if selected
-  if (fuentesToReplace.includes('objetivos')) {
+  // 2. Replace Objetivos if selected and incoming rows exist
+  if (fuentesToReplace.includes('objetivos') && newObjetivos.length > 0) {
     const prevCount = newObjList.length;
     newObjList = newObjList.filter(o => o.periodo_mes !== targetPeriod);
     delO = prevCount - newObjList.length;
@@ -391,8 +391,8 @@ export function executeReplacePeriodImport(
     });
   }
 
-  // 3. Replace Cobertura if selected
-  if (fuentesToReplace.includes('cobertura')) {
+  // 3. Replace Cobertura if selected and incoming rows exist
+  if (fuentesToReplace.includes('cobertura') && newCobertura.length > 0) {
     const prevCount = newCobList.length;
     newCobList = newCobList.filter(c => c.periodo_mes !== targetPeriod);
     delC = prevCount - newCobList.length;
@@ -808,5 +808,51 @@ async function syncToSupabaseIfConnected(batch: ImportBatch, audit: AuditLog): P
   } catch (err) {
     console.warn('Supabase remote sync log error:', err);
   }
+}
+
+/**
+ * Restores baseline objectives for the given period (or sept-26 template)
+ * without touching other months or sales/coverage tables.
+ */
+export function restoreBaselineObjetivos(
+  currentState: DatabaseState,
+  targetPeriod = 'sept-26'
+): { updatedState: DatabaseState; restoredCount: number } {
+  if (currentState.currentUser.role !== 'admin') {
+    throw new Error('Solo el administrador puede restaurar objetivos.');
+  }
+
+  const templateObj = INITIAL_OBJETIVOS.filter(o => o.periodo_mes === 'sept-26');
+  const restoredRecords: ObjetivoRecord[] = templateObj.map((o, idx) => ({
+    ...o,
+    id: `obj_restored_${Date.now()}_${idx}`,
+    periodo_mes: targetPeriod,
+    import_batch_id: 'batch_restored_obj'
+  }));
+
+  // Filter out any existing corrupted/partial records for targetPeriod and insert clean baseline
+  const otherObj = currentState.objetivos.filter(o => o.periodo_mes !== targetPeriod);
+  const updatedObjList = [...otherObj, ...restoredRecords];
+
+  const batchId = 'batch_restore_obj_' + Date.now();
+  const newAudit: AuditLog = {
+    id: 'audit_' + Date.now(),
+    batch_id: batchId,
+    action: 'IMPORT_APPEND',
+    details: `Restauración de ${restoredRecords.length} registros de presupuesto/objetivos para el período ${targetPeriod} ejecutada por ${currentState.currentUser.email}.`,
+    user_email: currentState.currentUser.email,
+    user_role: currentState.currentUser.role,
+    created_at: new Date().toISOString(),
+    periodo_afectado: targetPeriod
+  };
+
+  const updatedState: DatabaseState = {
+    ...currentState,
+    objetivos: updatedObjList,
+    auditLogs: [newAudit, ...currentState.auditLogs]
+  };
+
+  saveDatabase(updatedState);
+  return { updatedState, restoredCount: restoredRecords.length };
 }
 

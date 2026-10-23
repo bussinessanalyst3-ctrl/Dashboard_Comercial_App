@@ -15,7 +15,8 @@ import {
   executeAppendImport,
   executeReplacePeriodImport,
   resetDatabaseState,
-  clearAllCommercialData
+  clearAllCommercialData,
+  restoreBaselineObjetivos
 } from '../services/dbStore';
 import {
   Upload,
@@ -87,7 +88,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     !preview.periodos.includes(officialPeriod)
   );
 
-  // Replace mode selections
+  // Replace mode selections (automatically synchronized when preview updates)
   const [sourcesToReplace, setSourcesToReplace] = useState<{
     ventas: boolean;
     objetivos: boolean;
@@ -97,6 +98,17 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     objetivos: true,
     cobertura: true
   });
+
+  // When preview loads, automatically select only sources with incoming data > 0
+  React.useEffect(() => {
+    if (preview) {
+      setSourcesToReplace({
+        ventas: preview.ventasCount > 0,
+        objetivos: preview.objetivosCount > 0,
+        cobertura: preview.coberturaCount > 0
+      });
+    }
+  }, [preview]);
 
   // Modal / Confirm state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -110,6 +122,25 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   } | null>(null);
 
   const isAdmin = userRole === 'admin';
+
+  // Restore baseline objectives for the current period
+  const handleRestoreObjetivos = () => {
+    if (!isAdmin) return;
+    try {
+      const { updatedState, restoredCount } = restoreBaselineObjetivos(dbState, officialPeriod);
+      onUpdateDbState(updatedState);
+      setExecutionResult({
+        success: true,
+        message: `Se restauraron exitosamente ${restoredCount} presupuestos/objetivos oficiales para el período ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Los indicadores de cumplimiento de cuota ya se encuentran actualizados en el Dashboard.`
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExecutionResult({
+        success: false,
+        message: `Error al restaurar presupuestos: ${msg}`
+      });
+    }
+  };
 
   // Synchronize detected period when parsing file
   const syncDetectedPeriod = (periodos: string[]) => {
@@ -312,6 +343,15 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
             {isAdmin && (
               <>
+                <button
+                  onClick={handleRestoreObjetivos}
+                  className="inline-flex items-center gap-1.5 border border-[#38BDF8]/40 bg-[#38BDF8]/10 px-3 py-1.5 text-xs font-semibold text-[#38BDF8] hover:bg-[#38BDF8]/20 transition-colors"
+                  title={`Recargar presupuestos y objetivos oficiales para ${formatPeriodDisplay(officialPeriod)}`}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Restaurar Presupuestos ({officialPeriod})
+                </button>
+
                 <button
                   onClick={() => setShowClearConfirmModal(true)}
                   className="inline-flex items-center gap-1.5 border border-[#FB7185]/40 bg-[#FB7185]/10 px-3 py-1.5 text-xs font-semibold text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors"
@@ -566,6 +606,29 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                 <div className="border border-[#C5F467]/30 bg-[#12161C] p-3 text-xs text-[#C5F467] flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>Nuevo período para la serie histórica: No se registran datos previos para {formatPeriodDisplay(officialPeriod)}.</span>
+                </div>
+              )}
+
+              {/* Status warning if this period lacks objetivos/presupuestos */}
+              {existingObjetivos === 0 && (
+                <div className="border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-3 text-xs text-[#F59E0B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-[#F59E0B]" />
+                    <div>
+                      <span className="font-bold">Sin Presupuestos Registrados para {formatPeriodDisplay(officialPeriod)}:</span>
+                      <p className="font-sans text-slate-200 text-[11px] mt-0.5">
+                        El período seleccionado actualmente no cuenta con cuotas o presupuestos de facturación (0 objetivos).
+                      </p>
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={handleRestoreObjetivos}
+                      className="shrink-0 px-3 py-1.5 text-xs font-bold border border-[#F59E0B] bg-[#F59E0B]/20 text-[#F59E0B] hover:bg-[#F59E0B]/30 transition-colors"
+                    >
+                      Cargar Presupuestos Oficiales Base (1.044 registros)
+                    </button>
+                  )}
                 </div>
               )}
             </div>

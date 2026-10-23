@@ -202,22 +202,134 @@ export function formatInteger(val: number | null | undefined): string {
   return new Intl.NumberFormat('es-PY').format(Math.round(val));
 }
 
+export const OBJ_FACT_TARGETS = [
+  'presupuesto_facturacion',
+  'presupuestofacturacion',
+  'presupuesto_de_facturacion',
+  'presupuestodefacturacion',
+  'facturacion_presupuesto',
+  'facturacionpresupuesto',
+  'facturacion_presupuestada',
+  'facturacionpresupuestada',
+  'obj_facturacion',
+  'objfacturacion',
+  'objetivo_facturacion',
+  'objetivofacturacion',
+  'objetivo_de_facturacion',
+  'facturacion_objetivo',
+  'facturacionobjetivo',
+  'presupuesto_gs',
+  'presupuestogs',
+  'presupuesto_guaranies',
+  'meta_facturacion',
+  'metafacturacion',
+  'cuota_facturacion',
+  'cuotafacturacion',
+  'presupuesto_venta',
+  'presupuestoventa',
+  'presupuesto_ventas',
+  'monto_presupuesto',
+  'montopresupuesto',
+  'obj_fact',
+  'objfact',
+  'presupuesto',
+  'presupuestos',
+  'cuota',
+  'cuotas',
+  'meta',
+  'metas',
+  'objetivo',
+  'objetivos',
+  'facturacion',
+  'monto'
+];
+
+export const OBJ_TON_TARGETS = [
+  'presupuesto_toneladas',
+  'presupuestotoneladas',
+  'obj_toneladas',
+  'objtoneladas',
+  'objetivo_toneladas',
+  'meta_toneladas',
+  'cuota_toneladas',
+  'toneladas_presupuesto',
+  'toneladas_objetivo',
+  'toneladas_presupuestadas',
+  'presupuesto_ton',
+  'presupuestoton',
+  'obj_ton',
+  'objton',
+  'toneladas',
+  'ton',
+  'tons'
+];
+
+export const VENTAS_FACT_TARGETS = [
+  'ventas_facturacion',
+  'ventasfacturacion',
+  'venta_facturacion',
+  'ventafacturacion',
+  'facturacion_ventas',
+  'facturacionventas',
+  'facturacion_real',
+  'facturacionreal',
+  'real_facturacion',
+  'ventas_fact',
+  'ventasfact',
+  'ventas',
+  'venta',
+  'facturacion',
+  'monto'
+];
+
+export const VENTAS_TON_TARGETS = [
+  'ventas_toneladas',
+  'ventastoneladas',
+  'venta_toneladas',
+  'ventatoneladas',
+  'toneladas_ventas',
+  'toneladas_reales',
+  'ton_ventas',
+  'ventas_ton',
+  'toneladas',
+  'ton'
+];
+
 /**
  * Find matching key ignoring case, accents and whitespace
  */
-function findRowProp(row: Record<string, unknown>, targetNames: string[]): unknown {
+export function findRowProp(row: Record<string, unknown>, targetNames: string[]): unknown {
   const normTargets = targetNames.map(t => t.toLowerCase().replace(/[^a-z0-9]/g, ''));
-  for (const [key, val] of Object.entries(row)) {
+  const rowEntries = Object.entries(row);
+
+  // Exact normalized match first
+  for (const [key, val] of rowEntries) {
     const normKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (normTargets.includes(normKey)) {
-      return val;
+      if (val !== undefined && val !== null && String(val).trim() !== '') {
+        return val;
+      }
     }
   }
+
+  // Fallback: target is contained in key or key contains target
+  for (const [key, val] of rowEntries) {
+    const normKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    for (const target of normTargets) {
+      if (target.length >= 5 && (normKey.includes(target) || normKey === target)) {
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          return val;
+        }
+      }
+    }
+  }
+
   return undefined;
 }
 
 /**
  * Parse an Excel file (or CSV) containing DB_Objetivos, DB_Cobertura, DB_Ventas
+ * Supports multi-sheet workbooks, single-sheet files, and combined tables (sales + budget side-by-side).
  */
 export async function parseExcelOrCsvFile(
   file: File
@@ -230,28 +342,58 @@ export async function parseExcelOrCsvFile(
   const detectedSheets: string[] = [];
   const missingSheets: string[] = [];
 
-  // Identify matching sheets
-  const findSheet = (names: string[]): string | undefined => {
+  const objetivosData: Partial<ObjetivoRecord>[] = [];
+  const ventasData: Partial<VentaRecord>[] = [];
+  const coberturaData: Partial<CoberturaRecord>[] = [];
+  const periodosSet = new Set<string>();
+
+  // Helper to check matching sheet names
+  const findSheetByName = (names: string[]): string | undefined => {
     return sheetNames.find(sn => {
       const clean = sn.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
       return names.some(target => clean.includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
     });
   };
 
-  const sheetVentas = findSheet(['db_ventas', 'ventas', 'sheet1', 'sep_26']);
-  const sheetObjetivos = findSheet(['db_objetivos', 'objetivos', 'goals', 'presupuesto']);
-  const sheetCobertura = findSheet(['db_cobertura', 'cobertura', 'coverage', 'clientes']);
+  let explicitVentasSheet = findSheetByName(['db_ventas', 'ventas', 'venta', 'facturacion', 'sep_26']);
+  let explicitObjSheet = findSheetByName(['db_objetivos', 'objetivos', 'objetivo', 'presupuesto', 'presupuestos', 'metas', 'cuotas', 'goals', 'budget']);
+  let explicitCobSheet = findSheetByName(['db_cobertura', 'cobertura', 'coverage', 'clientes', 'cartera']);
 
-  const periodosSet = new Set<string>();
+  // If there's only 1 sheet (typical of CSV or single-sheet Excel), inspect its columns to determine what it contains
+  if (sheetNames.length === 1) {
+    const singleSheetName = sheetNames[0];
+    const singleSheet = workbook.Sheets[singleSheetName];
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(singleSheet, { defval: '' });
 
-  const objetivosData: Partial<ObjetivoRecord>[] = [];
-  const ventasData: Partial<VentaRecord>[] = [];
-  const coberturaData: Partial<CoberturaRecord>[] = [];
+    if (rawRows.length > 0) {
+      const firstRow = rawRows[0];
+      const hasSpecificVentasCol = Boolean(findRowProp(firstRow, ['ventas_facturacion', 'ventas_toneladas', 'facturacion_real', 'toneladas_reales', 'ventas_fact']));
+      const hasSpecificObjCol = Boolean(findRowProp(firstRow, ['presupuesto_facturacion', 'presupuesto_toneladas', 'obj_facturacion', 'obj_toneladas', 'objetivo_facturacion', 'presupuesto', 'meta', 'cuota']));
+      const hasCobCol = Boolean(findRowProp(firstRow, ['cobertura', 'clientes_reales', 'cobertura_planificada']));
 
-  // Parse Ventas
-  if (sheetVentas) {
-    detectedSheets.push(sheetVentas);
-    const sheet = workbook.Sheets[sheetVentas];
+      // If it has combined columns (both sales & budget)
+      if (hasSpecificVentasCol && hasSpecificObjCol) {
+        explicitVentasSheet = singleSheetName;
+        explicitObjSheet = singleSheetName;
+      } else if (hasSpecificObjCol && !hasSpecificVentasCol) {
+        // Pure budget/objective file
+        explicitObjSheet = singleSheetName;
+        explicitVentasSheet = undefined;
+      } else if (hasCobCol && !hasSpecificVentasCol && !hasSpecificObjCol) {
+        // Pure coverage file
+        explicitCobSheet = singleSheetName;
+        explicitVentasSheet = undefined;
+      } else {
+        // Standard sales or general file
+        explicitVentasSheet = singleSheetName;
+      }
+    }
+  }
+
+  // 1. PARSE VENTAS
+  if (explicitVentasSheet) {
+    detectedSheets.push(explicitVentasSheet);
+    const sheet = workbook.Sheets[explicitVentasSheet];
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
     rawRows.forEach((row, idx) => {
@@ -261,19 +403,16 @@ export async function parseExcelOrCsvFile(
       const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
       const vendedor = cleanText(findRowProp(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
       const producto = cleanText(findRowProp(row, ['producto', 'articulo', 'descripcion']));
-      const tonRaw = findRowProp(row, ['ventas_toneladas', 'toneladas', 'ton', 'tonelada']);
-      const factRaw = findRowProp(row, ['ventas_facturacion', 'facturacion', 'ventas_fact', 'monto']);
+      const tonRaw = findRowProp(row, VENTAS_TON_TARGETS);
+      const factRaw = findRowProp(row, VENTAS_FACT_TARGETS);
       const mesRaw = findRowProp(row, ['mes', 'periodo', 'fecha']);
 
-      if (!zona && !ruta && !producto) {
-        // empty row, skip
-        return;
-      }
+      if (!zona && !ruta && !producto) return;
 
       if (!ruta) {
         issues.push({
           type: 'warning',
-          hoja: sheetVentas,
+          hoja: explicitVentasSheet!,
           fila: rowNum,
           columna: 'Codigo_Ruta',
           mensaje: 'Fila con Código de Ruta vacío'
@@ -282,7 +421,7 @@ export async function parseExcelOrCsvFile(
       if (!producto) {
         issues.push({
           type: 'warning',
-          hoja: sheetVentas,
+          hoja: explicitVentasSheet!,
           fila: rowNum,
           columna: 'Producto',
           mensaje: 'Fila con Producto vacío'
@@ -290,9 +429,7 @@ export async function parseExcelOrCsvFile(
       }
 
       const mesNorm = normalizePeriod(mesRaw);
-      if (mesNorm !== 'DESCONOCIDO') {
-        periodosSet.add(mesNorm);
-      }
+      if (mesNorm !== 'DESCONOCIDO') periodosSet.add(mesNorm);
 
       const ton = cleanNumber(tonRaw);
       const fact = cleanNumber(factRaw);
@@ -307,26 +444,66 @@ export async function parseExcelOrCsvFile(
         ventas_facturacion: fact,
         periodo_mes: mesNorm
       });
+
+      // COMBINED TABLE CHECK: If the same row ALSO contains budget / objectives columns
+      // (e.g. "presupuesto_facturacion", "obj_facturacion", "presupuesto", "meta")
+      // extract the corresponding ObjetivoRecord!
+      const objFactRaw = findRowProp(row, [
+        'presupuesto_facturacion',
+        'presupuestofacturacion',
+        'presupuesto_de_facturacion',
+        'obj_facturacion',
+        'objetivo_facturacion',
+        'meta_facturacion',
+        'cuota_facturacion',
+        'presupuesto_gs',
+        'obj_fact',
+        'presupuesto',
+        'meta',
+        'cuota'
+      ]);
+      const objTonRaw = findRowProp(row, [
+        'presupuesto_toneladas',
+        'obj_toneladas',
+        'meta_toneladas',
+        'cuota_toneladas',
+        'toneladas_presupuesto',
+        'toneladas_objetivo',
+        'presupuesto_ton',
+        'obj_ton'
+      ]);
+
+      if (objFactRaw !== undefined || objTonRaw !== undefined) {
+        objetivosData.push({
+          zona: zona || 'SIN ZONA',
+          supervisor: supervisor || 'SIN SUPERVISOR',
+          codigo_ruta: ruta || 'SIN-RUTA',
+          vendedor: vendedor || 'SIN VENDEDOR',
+          producto: producto || 'SIN PRODUCTO',
+          toneladas: cleanNumber(objTonRaw),
+          facturacion: cleanNumber(objFactRaw),
+          periodo_mes: mesNorm
+        });
+      }
     });
   } else {
     missingSheets.push('DB_Ventas');
   }
 
-  // Parse Objetivos
-  if (sheetObjetivos) {
-    detectedSheets.push(sheetObjetivos);
-    const sheet = workbook.Sheets[sheetObjetivos];
+  // 2. PARSE OBJETIVOS (from dedicated sheet if present and not already extracted from combined sheet)
+  if (explicitObjSheet && explicitObjSheet !== explicitVentasSheet) {
+    detectedSheets.push(explicitObjSheet);
+    const sheet = workbook.Sheets[explicitObjSheet];
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
     rawRows.forEach((row, idx) => {
-      const rowNum = idx + 2;
       const zona = cleanText(findRowProp(row, ['zona', 'region', 'sucursal']));
       const supervisor = cleanText(findRowProp(row, ['supervisor']));
       const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta']));
       const vendedor = cleanText(findRowProp(row, ['vendedor']));
       const producto = cleanText(findRowProp(row, ['producto']));
-      const tonRaw = findRowProp(row, ['toneladas', 'ton', 'obj_toneladas']);
-      const factRaw = findRowProp(row, ['facturacion', 'obj_facturacion', 'presupuesto']);
+      const tonRaw = findRowProp(row, OBJ_TON_TARGETS);
+      const factRaw = findRowProp(row, OBJ_FACT_TARGETS);
       const mesRaw = findRowProp(row, ['mes', 'periodo']);
 
       if (!zona && !ruta && !producto) return;
@@ -345,23 +522,23 @@ export async function parseExcelOrCsvFile(
         periodo_mes: mesNorm
       });
     });
-  } else {
+  } else if (!explicitObjSheet && objetivosData.length === 0) {
     missingSheets.push('DB_Objetivos');
   }
 
-  // Parse Cobertura
-  if (sheetCobertura) {
-    detectedSheets.push(sheetCobertura);
-    const sheet = workbook.Sheets[sheetCobertura];
+  // 3. PARSE COBERTURA
+  if (explicitCobSheet) {
+    detectedSheets.push(explicitCobSheet);
+    const sheet = workbook.Sheets[explicitCobSheet];
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
-    rawRows.forEach((row, idx) => {
+    rawRows.forEach((row) => {
       const zona = cleanText(findRowProp(row, ['zona']));
       const supervisor = cleanText(findRowProp(row, ['supervisor']));
       const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta']));
       const vendedor = cleanText(findRowProp(row, ['vendedor']));
-      const cobRaw = findRowProp(row, ['cobertura', 'clientes_objetivo', 'obj_clientes', 'cobertura_planificada']);
-      const realesRaw = findRowProp(row, ['clientes_reales', 'clientes', 'reales', 'efectivos']);
+      const cobRaw = findRowProp(row, ['cobertura', 'clientes_objetivo', 'obj_clientes', 'cobertura_planificada', 'plan_cobertura']);
+      const realesRaw = findRowProp(row, ['clientes_reales', 'clientes', 'reales', 'efectivos', 'clientes_activos']);
       const mesRaw = findRowProp(row, ['mes', 'periodo']);
 
       if (!ruta && !vendedor) return;
@@ -383,27 +560,22 @@ export async function parseExcelOrCsvFile(
     missingSheets.push('DB_Cobertura');
   }
 
-  // Fallback single-sheet CSV detection: If uploaded file is a CSV and only 1 sheet exists
-  if (sheetNames.length === 1 && !sheetObjetivos && !sheetCobertura) {
-    // Check if the only sheet has ventas structure (which it usually does for the provided CSV)
-    if (ventasData.length > 0) {
-      // It's a valid Ventas CSV!
-      // Add informational warning
-      issues.push({
-        type: 'warning',
-        hoja: sheetNames[0],
-        mensaje: 'El archivo contiene únicamente la fuente de Ventas. Las hojas DB_Objetivos y DB_Cobertura no fueron detectadas en este archivo.'
-      });
-    }
+  // Fallback notes
+  if (sheetNames.length === 1 && objetivosData.length === 0) {
+    issues.push({
+      type: 'warning',
+      hoja: sheetNames[0],
+      mensaje: 'El archivo cargado contiene únicamente Ventas (0 Objetivos / Presupuestos detectados). Para cargar presupuestos, incluya la hoja DB_Objetivos o columnas como "Presupuesto Facturación".'
+    });
   }
 
-  // Check period detection
+  // Period detection
   const periodos = Array.from(periodosSet);
   if (periodos.length === 0) {
     issues.push({
-      type: 'error',
+      type: 'warning',
       hoja: 'General',
-      mensaje: 'No se pudo identificar una columna de Mes o Período válida en los datos.'
+      mensaje: 'No se detectó columna de período explícita en el archivo. Se utilizará el período oficial seleccionado por el Administrador.'
     });
   }
 
@@ -411,7 +583,7 @@ export async function parseExcelOrCsvFile(
 
   return {
     filename: file.name,
-    detectedSheets,
+    detectedSheets: Array.from(new Set(detectedSheets)),
     missingSheets,
     periodos,
     objetivosCount: objetivosData.length,
