@@ -8,12 +8,25 @@ let cachedClient: SupabaseClient | null = null;
 let lastUrl = '';
 let lastKey = '';
 
-export function getStoredSupabaseConfig(): { url: string; anonKey: string } {
-  const envUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
-  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+export function cleanSupabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+  // Strip trailing /rest/v1 or /rest/v1/
+  url = url.replace(/\/rest\/v1\/?$/, '');
+  // Strip any trailing slashes
+  url = url.replace(/\/+$/, '');
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+  return url;
+}
 
-  const storedUrl = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_URL_KEY) || '' : '';
-  const storedKey = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_KEY) || '' : '';
+export function getStoredSupabaseConfig(): { url: string; anonKey: string } {
+  const envUrl = cleanSupabaseUrl((import.meta.env.VITE_SUPABASE_URL as string) || '');
+  const envKey = ((import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '').trim();
+
+  const storedUrl = typeof window !== 'undefined' ? cleanSupabaseUrl(localStorage.getItem(STORAGE_URL_KEY) || '') : '';
+  const storedKey = typeof window !== 'undefined' ? (localStorage.getItem(STORAGE_KEY_KEY) || '').trim() : '';
 
   return {
     url: storedUrl || envUrl,
@@ -22,9 +35,11 @@ export function getStoredSupabaseConfig(): { url: string; anonKey: string } {
 }
 
 export function saveSupabaseConfig(url: string, anonKey: string): void {
+  const cleanedUrl = cleanSupabaseUrl(url);
+  const cleanedKey = anonKey.trim();
   if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_URL_KEY, url.trim());
-    localStorage.setItem(STORAGE_KEY_KEY, anonKey.trim());
+    localStorage.setItem(STORAGE_URL_KEY, cleanedUrl);
+    localStorage.setItem(STORAGE_KEY_KEY, cleanedKey);
   }
   cachedClient = null; // reset client
 }
