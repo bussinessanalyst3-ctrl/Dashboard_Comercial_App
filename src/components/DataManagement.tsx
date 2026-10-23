@@ -14,7 +14,8 @@ import {
 import {
   executeAppendImport,
   executeReplacePeriodImport,
-  resetDatabaseState
+  resetDatabaseState,
+  clearAllCommercialData
 } from '../services/dbStore';
 import {
   Upload,
@@ -64,6 +65,9 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
   // Modal / Confirm state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
+  const [clearSupabaseToo, setClearSupabaseToo] = useState(true);
+  const [isClearing, setIsClearing] = useState(false);
   const [executionResult, setExecutionResult] = useState<{
     success: boolean;
     message: string;
@@ -185,6 +189,27 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     }
   };
 
+  const handleConfirmClearAll = async () => {
+    setIsClearing(true);
+    try {
+      const res = await clearAllCommercialData(dbState.currentUser, clearSupabaseToo);
+      onUpdateDbState(res.clearedState);
+      setExecutionResult({
+        success: true,
+        message: res.message
+      });
+      setShowClearConfirmModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setExecutionResult({
+        success: false,
+        message: `Error al vaciar los datos: ${msg}`
+      });
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const handleResetData = () => {
     if (!confirm('¿Confirma que desea restablecer la base de datos comercial al estado inicial de fábrica (sept-26 + histórico)?')) {
       return;
@@ -237,14 +262,25 @@ export const DataManagement: React.FC<DataManagementProps> = ({
             </button>
 
             {isAdmin && (
-              <button
-                onClick={handleResetData}
-                className="inline-flex items-center gap-1.5 border border-[#FB7185]/30 bg-[#FB7185]/10 px-3 py-1.5 text-xs text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors"
-                title="Restablecer datos originales"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Restablecer Iniciales
-              </button>
+              <>
+                <button
+                  onClick={() => setShowClearConfirmModal(true)}
+                  className="inline-flex items-center gap-1.5 border border-[#FB7185]/40 bg-[#FB7185]/10 px-3 py-1.5 text-xs font-semibold text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors"
+                  title="Eliminar todos los datos de prueba y dejar la base en blanco"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Vaciar Datos de Prueba
+                </button>
+
+                <button
+                  onClick={handleResetData}
+                  className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#0B0D10] px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9] transition-colors"
+                  title="Restablecer datos originales de prueba (Demo)"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Restaurar Demo
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -628,6 +664,73 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                 className="border border-[#FB7185]/50 bg-[#FB7185] px-4 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#f43f5e] transition-colors"
               >
                 Sí, Reemplazar Período
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMATION MODAL FOR CLEARING TEST DATA */}
+      {showClearConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md border border-[#FB7185]/50 bg-[#12161C] p-6 text-xs font-mono shadow-2xl">
+            <div className="flex items-center gap-3 text-[#FB7185] mb-3">
+              <div className="flex h-10 w-10 items-center justify-center border border-[#FB7185]/30 bg-[#FB7185]/10">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#F1F5F9]">
+                  ¿Eliminar los datos de prueba del Dashboard?
+                </h3>
+                <span className="text-xs text-[#FB7185]">
+                  Dejará el sistema en blanco listo para sus datos reales
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[#929EAD] font-sans leading-relaxed">
+              Esta acción eliminará todos los registros de prueba cargados actualmente ({dbState.ventas.length} ventas, {dbState.objetivos.length} objetivos, {dbState.cobertura.length} coberturas).
+            </p>
+
+            <div className="mt-3 border border-[#242C37] bg-[#0B0D10] p-3 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer text-[#F1F5F9]">
+                <input
+                  type="checkbox"
+                  checked={clearSupabaseToo}
+                  onChange={e => setClearSupabaseToo(e.target.checked)}
+                  className="h-4 w-4 accent-[#FB7185]"
+                />
+                <span className="font-bold">Eliminar también los registros en Supabase</span>
+              </label>
+              <p className="text-[11px] text-[#626D7C] font-sans pl-6">
+                Vacía las tablas remotas de Supabase (com_ventas, com_objetivos, com_cobertura) para que queden totalmente limpias y listas para producción.
+              </p>
+            </div>
+
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowClearConfirmModal(false)}
+                disabled={isClearing}
+                className="px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9]"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmClearAll}
+                disabled={isClearing}
+                className="inline-flex items-center gap-2 border border-[#FB7185]/50 bg-[#FB7185] px-4 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#f43f5e] transition-colors disabled:opacity-50"
+              >
+                {isClearing ? (
+                  <>
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0B0D10] border-t-transparent" />
+                    Vaciando base de datos...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Sí, Vaciar Base de Datos
+                  </>
+                )}
               </button>
             </div>
           </div>

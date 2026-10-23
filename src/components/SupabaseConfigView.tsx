@@ -7,7 +7,7 @@ import {
   SupabaseHealthCheck
 } from '../services/supabaseClient';
 import { SUPABASE_SQL_SCHEMA } from '../services/sqlGenerator';
-import { seedSupabaseInitialData } from '../services/dbStore';
+import { seedSupabaseInitialData, clearSupabaseTables } from '../services/dbStore';
 import {
   Database,
   CheckCircle2,
@@ -21,7 +21,8 @@ import {
   Terminal,
   FileCode,
   BookOpen,
-  UploadCloud
+  UploadCloud,
+  Trash2
 } from 'lucide-react';
 
 interface SupabaseConfigViewProps {
@@ -35,9 +36,11 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
   const [anonKey, setAnonKey] = useState('');
   const [isTesting, setIsTesting] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isClearingRemote, setIsClearingRemote] = useState(false);
   const [seedResult, setSeedResult] = useState<{ success: boolean; message: string } | null>(null);
   const [health, setHealth] = useState<SupabaseHealthCheck | null>(null);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [copiedTruncateSql, setCopiedTruncateSql] = useState(false);
   const [activeGuideTab, setActiveGuideTab] = useState<'sql' | 'supabase' | 'vercel' | 'github'>('sql');
 
   useEffect(() => {
@@ -81,10 +84,27 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
     setIsSeeding(false);
   };
 
+  const handleClearRemote = async () => {
+    if (!confirm('¿Confirma que desea vaciar todas las filas de prueba en las tablas de Supabase (com_ventas, com_objetivos, com_cobertura)?')) {
+      return;
+    }
+    setIsClearingRemote(true);
+    setSeedResult(null);
+    const res = await clearSupabaseTables();
+    setSeedResult(res);
+    setIsClearingRemote(false);
+  };
+
   const copySqlToClipboard = () => {
     navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
     setCopiedSql(true);
     setTimeout(() => setCopiedSql(false), 2500);
+  };
+
+  const copyTruncateSql = () => {
+    navigator.clipboard.writeText('TRUNCATE TABLE com_ventas, com_objetivos, com_cobertura, com_import_batches RESTART IDENTITY CASCADE;');
+    setCopiedTruncateSql(true);
+    setTimeout(() => setCopiedTruncateSql(false), 2500);
   };
 
   return (
@@ -240,27 +260,51 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
             )}
 
             {health.connected && (
-              <div className="mt-4 pt-3 border-t border-[#242C37] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-[11px] text-[#929EAD]">
-                  ¿Deseas poblar la base de datos de Supabase con los 1.044 registros de ventas, objetivos y cobertura del archivo oficial <code className="text-[#F1F5F9] bg-[#191F27] px-1 py-0.5">sep_26_normalizada</code>?
+              <div className="mt-4 pt-3 border-t border-[#242C37] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-[11px] text-[#929EAD]">
+                    Gestión de datos en Supabase: Puede sincronizar el conjunto demo o vaciar todas las tablas para operar de cero.
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={handleClearRemote}
+                      disabled={isClearingRemote || isSeeding}
+                      className="shrink-0 inline-flex items-center gap-2 border border-[#FB7185]/40 bg-[#FB7185]/10 px-3 py-1.5 text-xs font-bold text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors disabled:opacity-50"
+                      title="Eliminar todas las filas en com_ventas, com_objetivos y com_cobertura"
+                    >
+                      {isClearingRemote ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#FB7185] border-t-transparent" />
+                          Vaciando tablas...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Vaciar Tablas en Supabase
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleSeed}
+                      disabled={isSeeding || isClearingRemote}
+                      className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/40 bg-[#C5F467]/20 px-3 py-1.5 text-xs font-bold text-[#C5F467] hover:bg-[#C5F467]/30 transition-colors disabled:opacity-50"
+                      title="Poblar las tablas con los 1.044 registros de sep_26_normalizada"
+                    >
+                      {isSeeding ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#C5F467] border-t-transparent" />
+                          Insertando datos...
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-4 w-4" />
+                          Sincronizar Dataset Inicial (Demo)
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={handleSeed}
-                  disabled={isSeeding}
-                  className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/40 bg-[#C5F467]/20 px-3 py-1.5 text-xs font-bold text-[#C5F467] hover:bg-[#C5F467]/30 transition-colors disabled:opacity-50"
-                >
-                  {isSeeding ? (
-                    <>
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#C5F467] border-t-transparent" />
-                      Insertando datos en Supabase...
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud className="h-4 w-4" />
-                      Sincronizar Dataset Inicial a Supabase
-                    </>
-                  )}
-                </button>
               </div>
             )}
 
@@ -352,6 +396,31 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
 
             <div className="relative max-h-96 overflow-y-auto border border-[#242C37] bg-[#0B0D10] p-4 text-[11px] text-[#C5F467]">
               <pre>{SUPABASE_SQL_SCHEMA}</pre>
+            </div>
+
+            {/* Truncate / Clear Query Box */}
+            <div className="border border-[#FB7185]/30 bg-[#0B0D10] p-3 mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4 text-[#FB7185]" />
+                  <span className="font-bold text-xs text-[#F1F5F9]">
+                    Comando SQL para vaciar datos de prueba en Supabase
+                  </span>
+                </div>
+                <button
+                  onClick={copyTruncateSql}
+                  className="inline-flex items-center gap-1 border border-[#FB7185]/40 bg-[#FB7185]/10 px-2 py-1 text-xs text-[#FB7185] hover:bg-[#FB7185]/20"
+                >
+                  <Copy className="h-3 w-3" />
+                  {copiedTruncateSql ? '¡Copiado!' : 'Copiar TRUNCATE'}
+                </button>
+              </div>
+              <p className="text-[11px] text-[#929EAD] font-sans mb-2">
+                Si desea vaciar las tablas directamente desde el SQL Editor de Supabase sin eliminar las políticas ni la estructura:
+              </p>
+              <pre className="text-xs text-[#FB7185] bg-[#12161C] p-2 border border-[#242C37] overflow-x-auto">
+TRUNCATE TABLE com_ventas, com_objetivos, com_cobertura, com_import_batches RESTART IDENTITY CASCADE;
+              </pre>
             </div>
           </div>
         )}

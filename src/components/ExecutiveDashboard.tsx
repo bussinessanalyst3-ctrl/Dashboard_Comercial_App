@@ -86,6 +86,19 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Empty State Banner if Data Wiped */}
+      {totalVentasCount === 0 && (
+        <div className="border border-[#38BDF8]/40 bg-[#12161C] p-5 font-mono text-xs">
+          <div className="flex items-center gap-2 font-bold text-sm text-[#F1F5F9]">
+            <Layers className="h-4 w-4 text-[#38BDF8]" />
+            Base de Datos Vacía — Listo para Carga de Datos Reales
+          </div>
+          <p className="font-sans text-slate-300 leading-relaxed max-w-2xl mt-2 text-xs">
+            Se han vaciado los datos de prueba. El sistema se encuentra en blanco y listo para recibir los archivos comerciales operativos de su empresa. Diríjase a la sección <strong>"Cargar Datos / Excel"</strong> en el menú lateral para importar su plantilla o archivo mensual (Ventas, Objetivos y Cobertura).
+          </p>
+        </div>
+      )}
+
       {/* ZONA B — ENCABEZADO DE CONTEXTO EDITORIAL */}
       <ContextBanner
         filters={filters}

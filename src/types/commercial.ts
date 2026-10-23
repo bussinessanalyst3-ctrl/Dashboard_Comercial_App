@@ -79,7 +79,7 @@ export interface ImportBatch {
 export interface AuditLog {
   id: string;
   batch_id?: string;
-  action: 'IMPORT_APPEND' | 'IMPORT_REPLACE' | 'DELETE_PERIOD' | 'ROLE_CHANGE' | 'RESET_DEMO' | 'SUPABASE_SYNC';
+  action: 'IMPORT_APPEND' | 'IMPORT_REPLACE' | 'DELETE_PERIOD' | 'ROLE_CHANGE' | 'RESET_DEMO' | 'SUPABASE_SYNC' | 'CLEAR_DATABASE';
   details: string;
   user_email: string;
   user_role: UserRole;

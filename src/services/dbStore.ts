@@ -16,6 +16,7 @@ import {
 } from './initialData';
 import { LOCAL_USERS, getSupabaseClient } from './supabaseClient';
 
+const DB_INITIALIZED_KEY = 'db_comercial_initialized_v2';
 const DB_VENTAS_KEY = 'db_comercial_ventas_v2';
 const DB_OBJETIVOS_KEY = 'db_comercial_objetivos_v2';
 const DB_COBERTURA_KEY = 'db_comercial_cobertura_v2';
@@ -37,6 +38,7 @@ export interface DatabaseState {
  */
 export function loadDatabase(): DatabaseState {
   try {
+    const initialized = localStorage.getItem(DB_INITIALIZED_KEY);
     const rawV = localStorage.getItem(DB_VENTAS_KEY);
     const rawO = localStorage.getItem(DB_OBJETIVOS_KEY);
     const rawC = localStorage.getItem(DB_COBERTURA_KEY);
@@ -46,8 +48,9 @@ export function loadDatabase(): DatabaseState {
 
     const currentUser: UserProfile = rawU ? JSON.parse(rawU) : LOCAL_USERS[0];
 
-    if (!rawV || !rawO || !rawC) {
+    if (!initialized && (rawV === null || rawO === null || rawC === null)) {
       // First run: Seed from initial data
+      localStorage.setItem(DB_INITIALIZED_KEY, 'true');
       saveDatabase({
         ventas: INITIAL_VENTAS,
         objetivos: INITIAL_OBJETIVOS,
@@ -67,11 +70,11 @@ export function loadDatabase(): DatabaseState {
     }
 
     return {
-      ventas: JSON.parse(rawV),
-      objetivos: JSON.parse(rawO),
-      cobertura: JSON.parse(rawC),
-      batches: rawB ? JSON.parse(rawB) : INITIAL_BATCHES,
-      auditLogs: rawA ? JSON.parse(rawA) : INITIAL_AUDIT_LOGS,
+      ventas: rawV ? JSON.parse(rawV) : [],
+      objetivos: rawO ? JSON.parse(rawO) : [],
+      cobertura: rawC ? JSON.parse(rawC) : [],
+      batches: rawB ? JSON.parse(rawB) : [],
+      auditLogs: rawA ? JSON.parse(rawA) : [],
       currentUser
     };
   } catch (err) {
@@ -467,7 +470,102 @@ export function resetDatabaseState(user: UserProfile): DatabaseState {
   };
 
   saveDatabase(newState);
+  try {
+    localStorage.setItem(DB_INITIALIZED_KEY, 'true');
+  } catch {}
   return newState;
+}
+
+/**
+ * Empties all commercial records (ventas, objetivos, cobertura, batches)
+ * from the dashboard, leaving a clean slate ready for importing real data.
+ */
+export async function clearAllCommercialData(
+  user: UserProfile,
+  alsoClearSupabase: boolean = true
+): Promise<{
+  success: boolean;
+  message: string;
+  clearedState: DatabaseState;
+  remoteCleared?: boolean;
+}> {
+  const clearAudit: AuditLog = {
+    id: 'audit_clear_' + Date.now(),
+    action: 'CLEAR_DATABASE',
+    details: 'Se eliminaron todos los registros de prueba y datos comerciales (ventas, objetivos, cobertura) para iniciar la operación con base limpia.',
+    user_email: user.email,
+    user_role: user.role,
+    created_at: new Date().toISOString()
+  };
+
+  const clearedState: DatabaseState = {
+    ventas: [],
+    objetivos: [],
+    cobertura: [],
+    batches: [],
+    auditLogs: [clearAudit],
+    currentUser: user
+  };
+
+  saveDatabase(clearedState);
+  try {
+    localStorage.setItem(DB_INITIALIZED_KEY, 'true');
+  } catch {}
+
+  let remoteCleared = false;
+  if (alsoClearSupabase) {
+    const res = await clearSupabaseTables();
+    remoteCleared = res.success;
+  }
+
+  return {
+    success: true,
+    message: remoteCleared
+      ? 'Se eliminaron exitosamente todos los datos de prueba tanto del Dashboard local como de las tablas de Supabase.'
+      : 'Se eliminaron exitosamente todos los datos de prueba del Dashboard local.',
+    clearedState,
+    remoteCleared
+  };
+}
+
+/**
+ * Truncates/deletes all rows in Supabase tables (com_ventas, com_objetivos, com_cobertura, com_import_batches)
+ */
+export async function clearSupabaseTables(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, message: 'Supabase no está conectado.' };
+  }
+
+  try {
+    // Delete from com_* and comercial_* (PostgREST requires filter)
+    const tables = [
+      'com_ventas', 'com_objetivos', 'com_cobertura', 'com_import_batches',
+      'comercial_ventas', 'comercial_objetivos', 'comercial_cobertura', 'import_batches'
+    ];
+
+    for (const tbl of tables) {
+      try {
+        await client.from(tbl).delete().neq('id', '___never_match___');
+      } catch (e) {
+        // Table may not exist or already be empty
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Tablas de Supabase vaciadas con éxito. Base de datos remota limpia.'
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return {
+      success: false,
+      message: `Error al vaciar tablas de Supabase: ${msg}`
+    };
+  }
 }
 
 /**
