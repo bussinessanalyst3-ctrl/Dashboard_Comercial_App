@@ -99,20 +99,60 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthCheck> {
   }
 
   try {
-    // Attempt to query user_profiles or comercial_ventas
-    const { error: vErr } = await client.from('comercial_ventas').select('id').limit(1);
-    const { error: oErr } = await client.from('comercial_objetivos').select('id').limit(1);
-    const { error: cErr } = await client.from('comercial_cobertura').select('id').limit(1);
-    const { error: bErr } = await client.from('import_batches').select('id').limit(1);
-    const { error: aErr } = await client.from('import_audit_logs').select('id').limit(1);
+    // Attempt to query with flexible table name detection (com_* or comercial_*)
+    let vFound = false;
+    const v1 = await client.from('comercial_ventas').select('id').limit(1);
+    if (!v1.error || v1.error.code !== '42P01') {
+      vFound = true;
+    } else {
+      const v2 = await client.from('com_ventas').select('id').limit(1);
+      if (!v2.error || v2.error.code !== '42P01') vFound = true;
+    }
+
+    let oFound = false;
+    const o1 = await client.from('comercial_objetivos').select('id').limit(1);
+    if (!o1.error || o1.error.code !== '42P01') {
+      oFound = true;
+    } else {
+      const o2 = await client.from('com_objetivos').select('id').limit(1);
+      if (!o2.error || o2.error.code !== '42P01') oFound = true;
+    }
+
+    let cFound = false;
+    const c1 = await client.from('comercial_cobertura').select('id').limit(1);
+    if (!c1.error || c1.error.code !== '42P01') {
+      cFound = true;
+    } else {
+      const c2 = await client.from('com_cobertura').select('id').limit(1);
+      if (!c2.error || c2.error.code !== '42P01') cFound = true;
+    }
+
+    let bFound = false;
+    const b1 = await client.from('import_batches').select('id').limit(1);
+    if (!b1.error || b1.error.code !== '42P01') {
+      bFound = true;
+    } else {
+      const b2 = await client.from('com_import_batches').select('id').limit(1);
+      if (!b2.error || b2.error.code !== '42P01') bFound = true;
+    }
+
+    let aFound = false;
+    const a1 = await client.from('import_audit_logs').select('id').limit(1);
+    if (!a1.error || a1.error.code !== '42P01') {
+      aFound = true;
+    } else {
+      const a2 = await client.from('com_audit_logs').select('id').limit(1);
+      if (!a2.error || a2.error.code !== '42P01') aFound = true;
+    }
+
     const { error: pErr } = await client.from('user_profiles').select('id').limit(1);
 
     const tablesFound = {
-      ventas: !vErr || vErr.code !== '42P01',
-      objetivos: !oErr || oErr.code !== '42P01',
-      cobertura: !cErr || cErr.code !== '42P01',
-      batches: !bErr || bErr.code !== '42P01',
-      auditLogs: !aErr || aErr.code !== '42P01',
+      ventas: vFound,
+      objetivos: oFound,
+      cobertura: cFound,
+      batches: bFound,
+      auditLogs: aFound,
       profiles: !pErr || pErr.code !== '42P01'
     };
 
