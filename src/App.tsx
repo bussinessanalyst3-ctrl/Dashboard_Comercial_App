@@ -337,6 +337,12 @@ export default function App() {
                 onUpdateDbState={setDbState}
                 userRole={currentUser.role}
                 onSwitchToAudit={() => setActiveTab('audit')}
+                onSwitchToDashboard={(targetPeriod) => {
+                  if (targetPeriod) {
+                    setFilters(prev => ({ ...prev, periodo: targetPeriod }));
+                  }
+                  setActiveTab('overview');
+                }}
               />
             )}
 

@@ -80,56 +80,100 @@ export function cleanText(val: unknown): string {
  * Normalizes period labels: "sept-26", "sep-26", "2026-09", "sep 2026", etc.
  */
 export function normalizePeriod(val: unknown): string {
-  if (!val) return 'DESCONOCIDO';
+  if (val === null || val === undefined || val === '') return 'DESCONOCIDO';
+
+  const mNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+
+  // 1. If Date object
+  if (val instanceof Date && !isNaN(val.getTime())) {
+    const m = mNames[val.getUTCMonth()];
+    const y = String(val.getUTCFullYear()).slice(-2);
+    return `${m}-${y}`;
+  }
+
   let s = String(val).trim().toLowerCase().replace(/['"]/g, '');
+  if (!s || s === 'n/a' || s === 'null' || s === 'undefined') return 'DESCONOCIDO';
+
+  // 2. Excel serial date integer (e.g., 44000 to 55000 covers years 2020 to 2050; 46235 = Agosto 2026)
+  const numVal = Number(s);
+  if (!isNaN(numVal) && numVal >= 30000 && numVal <= 75000 && !s.includes('-') && !s.includes('/')) {
+    // Excel base date: 1899-12-30 (due to 1900 leap year bug in Excel)
+    const date = new Date(Math.round((numVal - 25569) * 86400 * 1000));
+    if (!isNaN(date.getTime())) {
+      const m = mNames[date.getUTCMonth()];
+      const y = String(date.getUTCFullYear()).slice(-2);
+      return `${m}-${y}`;
+    }
+  }
 
   // Month mapping
   const monthMap: Record<string, string> = {
-    ene: 'ene', enero: 'ene', jan: 'ene',
-    feb: 'feb', febrero: 'feb',
-    mar: 'mar', marzo: 'mar',
-    abr: 'abr', abril: 'abr', apr: 'abr',
+    ene: 'ene', enero: 'ene', jan: 'ene', january: 'ene',
+    feb: 'feb', febrero: 'feb', february: 'feb',
+    mar: 'mar', marzo: 'mar', march: 'mar',
+    abr: 'abr', abril: 'abr', apr: 'abr', april: 'abr',
     may: 'may', mayo: 'may',
-    jun: 'jun', junio: 'jun',
-    jul: 'jul', julio: 'jul',
-    ago: 'ago', agosto: 'ago', aug: 'ago',
-    sep: 'sept', sept: 'sept', set: 'sept', septiembre: 'sept',
-    oct: 'oct', octubre: 'oct',
-    nov: 'nov', noviembre: 'nov',
-    dic: 'dic', diciembre: 'dic', dec: 'dic'
+    jun: 'jun', junio: 'jun', june: 'jun',
+    jul: 'jul', julio: 'jul', july: 'jul',
+    ago: 'ago', agosto: 'ago', aug: 'ago', august: 'ago',
+    sep: 'sept', sept: 'sept', set: 'sept', setiembre: 'sept', septiembre: 'sept', september: 'sept',
+    oct: 'oct', octubre: 'oct', october: 'oct',
+    nov: 'nov', noviembre: 'nov', november: 'nov',
+    dic: 'dic', diciembre: 'dic', dec: 'dic', december: 'dic'
   };
 
-  // If format YYYY-MM
+  // 3. Format YYYY-MM or YYYY/MM (e.g. 2026-08, 2026/08)
   const yyyyMm = s.match(/^(\d{4})[-/](\d{1,2})$/);
   if (yyyyMm) {
     const yr = yyyyMm[1].slice(-2);
     const mNum = parseInt(yyyyMm[2], 10);
-    const mNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
     return `${mNames[mNum - 1] || 'mes'}-${yr}`;
   }
 
-  // If format MM-YYYY
+  // 4. Format MM-YYYY or MM/YYYY (e.g. 08-2026, 08/2026)
   const mmYyyy = s.match(/^(\d{1,2})[-/](\d{4})$/);
   if (mmYyyy) {
     const yr = mmYyyy[2].slice(-2);
     const mNum = parseInt(mmYyyy[1], 10);
-    const mNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
     return `${mNames[mNum - 1] || 'mes'}-${yr}`;
   }
 
-  // Match text like "sept-26", "sep 26", "septiembre 2026"
+  // 5. Full date format: DD/MM/YYYY or DD-MM-YYYY (e.g. 01/08/2026, 15/08/2026)
+  const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+  if (dmyMatch) {
+    const p1 = parseInt(dmyMatch[1], 10);
+    const p2 = parseInt(dmyMatch[2], 10);
+    const yr = dmyMatch[3].slice(-2);
+    let mNum = p2;
+    if (p2 > 12 && p1 <= 12) {
+      mNum = p1; // MM/DD/YYYY
+    }
+    return `${mNames[mNum - 1] || 'mes'}-${yr}`;
+  }
+
+  // 6. Full date format: YYYY-MM-DD or YYYY/MM/DD (e.g. 2026-08-01)
+  const ymdMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (ymdMatch) {
+    const yr = ymdMatch[1].slice(-2);
+    const mNum = parseInt(ymdMatch[2], 10);
+    return `${mNames[mNum - 1] || 'mes'}-${yr}`;
+  }
+
+  // 7. Match text like "sept-26", "sep 26", "agosto 2026", "ago-26", "ago 26"
   const textMatch = s.match(/([a-záéíóú]+)[-_/ ]*(\d{2,4})?/i);
   if (textMatch) {
-    const mPrefix = textMatch[1].slice(0, 4);
-    let matchedMonth = 'sept';
+    const rawWord = textMatch[1].toLowerCase();
+    let matchedMonth = '';
     for (const [key, val] of Object.entries(monthMap)) {
-      if (textMatch[1].startsWith(key) || key.startsWith(mPrefix)) {
+      if (rawWord === key || rawWord.startsWith(key) || key.startsWith(rawWord.slice(0, 3))) {
         matchedMonth = val;
         break;
       }
     }
-    const yearStr = textMatch[2] ? textMatch[2].slice(-2) : '26';
-    return `${matchedMonth}-${yearStr}`;
+    if (matchedMonth) {
+      const yearStr = textMatch[2] ? textMatch[2].slice(-2) : '26';
+      return `${matchedMonth}-${yearStr}`;
+    }
   }
 
   return s;

@@ -39,6 +39,7 @@ interface DataManagementProps {
   onUpdateDbState: (newState: DatabaseState) => void;
   userRole: UserRole;
   onSwitchToAudit: () => void;
+  onSwitchToDashboard?: (targetPeriod?: string) => void;
 }
 
 export const MONTH_OPTIONS = [
@@ -62,7 +63,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   dbState,
   onUpdateDbState,
   userRole,
-  onSwitchToAudit
+  onSwitchToAudit,
+  onSwitchToDashboard
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ImportPreviewSummary | null>(null);
@@ -119,6 +121,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     success: boolean;
     message: string;
     stats?: Record<string, number>;
+    targetPeriod?: string;
   } | null>(null);
 
   const isAdmin = userRole === 'admin';
@@ -131,7 +134,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
       onUpdateDbState(updatedState);
       setExecutionResult({
         success: true,
-        message: `Se restauraron exitosamente ${restoredCount} presupuestos/objetivos oficiales para el período ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Los indicadores de cumplimiento de cuota ya se encuentran actualizados en el Dashboard.`
+        message: `Se restauraron exitosamente ${restoredCount} presupuestos/objetivos oficiales para el período ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Los indicadores de cumplimiento de cuota ya se encuentran actualizados en el Dashboard.`,
+        targetPeriod: officialPeriod
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -230,7 +234,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         setExecutionResult({
           success: true,
           message: `Importación incremental ejecutada con éxito para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Idempotencia asegurada: registros duplicados actualizados sin replicar filas.`,
-          stats: result.stats
+          stats: result.stats,
+          targetPeriod: officialPeriod
         });
       } else {
         // Replace mode
@@ -253,7 +258,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         setExecutionResult({
           success: true,
           message: `Reemplazo atómico completado para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Se eliminaron los datos previos seleccionados y se insertaron los nuevos. Los demás meses permanecen intactos.`,
-          stats: result.deletedCounts
+          stats: result.deletedCounts,
+          targetPeriod: officialPeriod
         });
       }
 
@@ -446,14 +452,24 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               {executionResult.success ? 'Operación Exitosa' : 'Aviso en la Operación'}
             </div>
             <p className="font-sans text-slate-200">{executionResult.message}</p>
-            <div className="mt-2 pt-2 border-t border-[#242C37] flex items-center justify-between">
+            <div className="mt-2 pt-2 border-t border-[#242C37] flex flex-wrap items-center justify-between gap-2">
               <span className="text-[#929EAD]">Transacción inmutable registrada en auditoría.</span>
-              <button
-                onClick={onSwitchToAudit}
-                className="font-bold underline text-[#C5F467]"
-              >
-                Ver registro en Auditoría →
-              </button>
+              <div className="flex items-center gap-3">
+                {onSwitchToDashboard && executionResult.success && (
+                  <button
+                    onClick={() => onSwitchToDashboard(executionResult.targetPeriod || officialPeriod)}
+                    className="font-bold underline text-[#C5F467] hover:text-[#b8eb58] flex items-center gap-1 cursor-pointer"
+                  >
+                    Ver en el Dashboard ({formatPeriodDisplay(executionResult.targetPeriod || officialPeriod)}) →
+                  </button>
+                )}
+                <button
+                  onClick={onSwitchToAudit}
+                  className="font-bold underline text-[#929EAD] hover:text-[#F1F5F9] cursor-pointer"
+                >
+                  Ver Auditoría →
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -609,15 +625,25 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                 </div>
               )}
 
-              {/* Status warning if this period lacks objetivos/presupuestos */}
-              {existingObjetivos === 0 && (
+              {/* Status check for objetivos/presupuestos */}
+              {preview.objetivosCount > 0 ? (
+                <div className="border border-[#C5F467]/30 bg-[#12161C] p-3 text-xs text-[#C5F467] flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[#C5F467]" />
+                  <div>
+                    <span className="font-bold">Presupuestos y Metas Listos ({preview.objetivosCount} cuotas en el archivo):</span>
+                    <p className="font-sans text-slate-200 text-[11px] mt-0.5">
+                      El archivo incluye correctamente sus presupuestos de facturación y toneladas para {formatPeriodDisplay(officialPeriod)}. Al hacer clic en <strong>«Ejecutar Importación Atómica»</strong> abajo, se guardarán en la base de datos y se calcularán los porcentajes de cumplimiento en el Dashboard.
+                    </p>
+                  </div>
+                </div>
+              ) : existingObjetivos === 0 ? (
                 <div className="border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-3 text-xs text-[#F59E0B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 shrink-0 text-[#F59E0B]" />
                     <div>
                       <span className="font-bold">Sin Presupuestos Registrados para {formatPeriodDisplay(officialPeriod)}:</span>
                       <p className="font-sans text-slate-200 text-[11px] mt-0.5">
-                        El período seleccionado actualmente no cuenta con cuotas o presupuestos de facturación (0 objetivos).
+                        El archivo cargado no contiene la hoja o columnas de objetivos/presupuestos, y este período aún no cuenta con cuotas en la base de datos.
                       </p>
                     </div>
                   </div>
@@ -630,7 +656,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                     </button>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* MODALITY SELECTION */}
