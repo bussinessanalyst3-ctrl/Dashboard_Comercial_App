@@ -169,7 +169,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     setExecutionResult(null);
 
     try {
-      const parsedPreview = await parseExcelOrCsvFile(file);
+      const parsedPreview = await parseExcelOrCsvFile(file, dbState);
       setPreview(parsedPreview);
       syncDetectedPeriod(parsedPreview.periodos);
     } catch (err: unknown) {
@@ -192,7 +192,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
       const blob = await resp.blob();
       const file = new File([blob], 'sep_26_normalizada.csv', { type: 'text/csv' });
       setSelectedFile(file);
-      const parsedPreview = await parseExcelOrCsvFile(file);
+      const parsedPreview = await parseExcelOrCsvFile(file, dbState);
       setPreview(parsedPreview);
       syncDetectedPeriod(parsedPreview.periodos);
     } catch (err: unknown) {

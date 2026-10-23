@@ -136,6 +136,45 @@ export function executeAppendImport(
   let insertedO = 0;
   let insertedC = 0;
 
+  // Build route directory to enrich missing vendedor in ventas (e.g. from Image 3 where Vendedor is omitted)
+  const routeDir = new Map<string, { vendedor: string; supervisor: string; zona: string }>();
+  newObjetivos.forEach(o => {
+    if (o.codigo_ruta && o.vendedor && o.vendedor !== 'SIN VENDEDOR') {
+      routeDir.set(o.codigo_ruta.trim().toUpperCase(), {
+        vendedor: o.vendedor.trim().toUpperCase(),
+        supervisor: o.supervisor?.trim().toUpperCase() || '',
+        zona: o.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+  newCobertura.forEach(c => {
+    if (c.codigo_ruta && c.vendedor && c.vendedor !== 'SIN VENDEDOR' && !routeDir.has(c.codigo_ruta.trim().toUpperCase())) {
+      routeDir.set(c.codigo_ruta.trim().toUpperCase(), {
+        vendedor: c.vendedor.trim().toUpperCase(),
+        supervisor: c.supervisor?.trim().toUpperCase() || '',
+        zona: c.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+  currentState.objetivos.forEach(o => {
+    if (o.codigo_ruta && o.vendedor && o.vendedor !== 'SIN VENDEDOR' && !routeDir.has(o.codigo_ruta.trim().toUpperCase())) {
+      routeDir.set(o.codigo_ruta.trim().toUpperCase(), {
+        vendedor: o.vendedor.trim().toUpperCase(),
+        supervisor: o.supervisor?.trim().toUpperCase() || '',
+        zona: o.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+  currentState.cobertura.forEach(c => {
+    if (c.codigo_ruta && c.vendedor && c.vendedor !== 'SIN VENDEDOR' && !routeDir.has(c.codigo_ruta.trim().toUpperCase())) {
+      routeDir.set(c.codigo_ruta.trim().toUpperCase(), {
+        vendedor: c.vendedor.trim().toUpperCase(),
+        supervisor: c.supervisor?.trim().toUpperCase() || '',
+        zona: c.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+
   // 1. Process Ventas with Unique Key (periodo_mes + codigo_ruta + vendedor + producto)
   const ventasMap = new Map<string, VentaRecord>();
   currentState.ventas.forEach(v => {
@@ -145,7 +184,18 @@ export function executeAppendImport(
 
   newVentas.forEach((v, idx) => {
     const periodToUse = officialPeriod || v.periodo_mes || 'sept-26';
-    const key = `${periodToUse}|${v.codigo_ruta}|${v.vendedor}|${v.producto}`;
+    const normRuta = (v.codigo_ruta || '').trim().toUpperCase();
+    const resolvedVendedor = (v.vendedor && v.vendedor !== 'SIN VENDEDOR')
+      ? v.vendedor
+      : (routeDir.get(normRuta)?.vendedor || 'SIN VENDEDOR');
+    const resolvedSupervisor = (v.supervisor && v.supervisor !== 'SIN SUPERVISOR')
+      ? v.supervisor
+      : (routeDir.get(normRuta)?.supervisor || 'SIN SUPERVISOR');
+    const resolvedZona = (v.zona && v.zona !== 'SIN ZONA')
+      ? v.zona
+      : (routeDir.get(normRuta)?.zona || 'SIN ZONA');
+
+    const key = `${periodToUse}|${v.codigo_ruta}|${resolvedVendedor}|${v.producto}`;
     const existing = ventasMap.get(key);
     if (existing) {
       // Update values
@@ -154,8 +204,9 @@ export function executeAppendImport(
         periodo_mes: periodToUse,
         ventas_toneladas: v.ventas_toneladas ?? existing.ventas_toneladas,
         ventas_facturacion: v.ventas_facturacion ?? existing.ventas_facturacion,
-        zona: v.zona || existing.zona,
-        supervisor: v.supervisor || existing.supervisor,
+        zona: resolvedZona || existing.zona,
+        supervisor: resolvedSupervisor || existing.supervisor,
+        vendedor: resolvedVendedor || existing.vendedor,
         import_batch_id: batchId
       });
       updatedV++;
@@ -163,10 +214,10 @@ export function executeAppendImport(
       ventasMap.set(key, {
         id: `v_${Date.now()}_${idx}`,
         periodo_mes: periodToUse,
-        zona: v.zona || 'SIN ZONA',
-        supervisor: v.supervisor || 'SIN SUPERVISOR',
+        zona: resolvedZona || 'SIN ZONA',
+        supervisor: resolvedSupervisor || 'SIN SUPERVISOR',
         codigo_ruta: v.codigo_ruta || 'SIN RUTA',
-        vendedor: v.vendedor || 'SIN VENDEDOR',
+        vendedor: resolvedVendedor || 'SIN VENDEDOR',
         producto: v.producto || 'SIN PRODUCTO',
         ventas_toneladas: v.ventas_toneladas || 0,
         ventas_facturacion: v.ventas_facturacion || 0,
@@ -344,6 +395,36 @@ export function executeReplacePeriodImport(
   let newObjList = [...currentState.objetivos];
   let newCobList = [...currentState.cobertura];
 
+  // Build route directory to enrich missing vendedor in ventas (e.g. from Image 3 where Vendedor is omitted)
+  const repRouteDir = new Map<string, { vendedor: string; supervisor: string; zona: string }>();
+  newObjetivos.forEach(o => {
+    if (o.codigo_ruta && o.vendedor && o.vendedor !== 'SIN VENDEDOR') {
+      repRouteDir.set(o.codigo_ruta.trim().toUpperCase(), {
+        vendedor: o.vendedor.trim().toUpperCase(),
+        supervisor: o.supervisor?.trim().toUpperCase() || '',
+        zona: o.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+  newCobList.forEach(c => {
+    if (c.codigo_ruta && c.vendedor && c.vendedor !== 'SIN VENDEDOR' && !repRouteDir.has(c.codigo_ruta.trim().toUpperCase())) {
+      repRouteDir.set(c.codigo_ruta.trim().toUpperCase(), {
+        vendedor: c.vendedor.trim().toUpperCase(),
+        supervisor: c.supervisor?.trim().toUpperCase() || '',
+        zona: c.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+  currentState.objetivos.forEach(o => {
+    if (o.codigo_ruta && o.vendedor && o.vendedor !== 'SIN VENDEDOR' && !repRouteDir.has(o.codigo_ruta.trim().toUpperCase())) {
+      repRouteDir.set(o.codigo_ruta.trim().toUpperCase(), {
+        vendedor: o.vendedor.trim().toUpperCase(),
+        supervisor: o.supervisor?.trim().toUpperCase() || '',
+        zona: o.zona?.trim().toUpperCase() || ''
+      });
+    }
+  });
+
   // 1. Replace Ventas if selected and incoming rows exist
   if (fuentesToReplace.includes('ventas') && newVentas.length > 0) {
     const prevCount = newVentasList.length;
@@ -352,13 +433,24 @@ export function executeReplacePeriodImport(
 
     // Add all incoming records assigning targetPeriod
     newVentas.forEach((v, idx) => {
+      const normRuta = (v.codigo_ruta || '').trim().toUpperCase();
+      const resolvedVendedor = (v.vendedor && v.vendedor !== 'SIN VENDEDOR')
+        ? v.vendedor
+        : (repRouteDir.get(normRuta)?.vendedor || 'SIN VENDEDOR');
+      const resolvedSupervisor = (v.supervisor && v.supervisor !== 'SIN SUPERVISOR')
+        ? v.supervisor
+        : (repRouteDir.get(normRuta)?.supervisor || 'SIN SUPERVISOR');
+      const resolvedZona = (v.zona && v.zona !== 'SIN ZONA')
+        ? v.zona
+        : (repRouteDir.get(normRuta)?.zona || 'SIN ZONA');
+
       newVentasList.push({
         id: `v_rep_${Date.now()}_${idx}`,
         periodo_mes: targetPeriod,
-        zona: v.zona || 'SIN ZONA',
-        supervisor: v.supervisor || 'SIN SUPERVISOR',
+        zona: resolvedZona || 'SIN ZONA',
+        supervisor: resolvedSupervisor || 'SIN SUPERVISOR',
         codigo_ruta: v.codigo_ruta || 'SIN RUTA',
-        vendedor: v.vendedor || 'SIN VENDEDOR',
+        vendedor: resolvedVendedor || 'SIN VENDEDOR',
         producto: v.producto || 'SIN PRODUCTO',
         ventas_toneladas: v.ventas_toneladas || 0,
         ventas_facturacion: v.ventas_facturacion || 0,
