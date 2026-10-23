@@ -40,6 +40,23 @@ interface DataManagementProps {
   onSwitchToAudit: () => void;
 }
 
+export const MONTH_OPTIONS = [
+  { code: 'ene', name: 'Enero (01)' },
+  { code: 'feb', name: 'Febrero (02)' },
+  { code: 'mar', name: 'Marzo (03)' },
+  { code: 'abr', name: 'Abril (04)' },
+  { code: 'may', name: 'Mayo (05)' },
+  { code: 'jun', name: 'Junio (06)' },
+  { code: 'jul', name: 'Julio (07)' },
+  { code: 'ago', name: 'Agosto (08)' },
+  { code: 'sept', name: 'Septiembre (09)' },
+  { code: 'oct', name: 'Octubre (10)' },
+  { code: 'nov', name: 'Noviembre (11)' },
+  { code: 'dic', name: 'Diciembre (12)' }
+];
+
+export const YEAR_OPTIONS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+
 export const DataManagement: React.FC<DataManagementProps> = ({
   dbState,
   onUpdateDbState,
@@ -51,8 +68,26 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   const [isParsing, setIsParsing] = useState(false);
   const [operationType, setOperationType] = useState<ImportOperationType>('append');
 
+  // Mandatory Official Period Assignment
+  const [selectedMonth, setSelectedMonth] = useState<string>('sept');
+  const [selectedYear, setSelectedYear] = useState<string>('2026');
+
+  // Normalized official period key (e.g. "sept-26")
+  const officialPeriod = `${selectedMonth}-${selectedYear.slice(-2)}`;
+
+  // Prior data validation against existing database
+  const existingVentas = dbState.ventas.filter(v => v.periodo_mes === officialPeriod).length;
+  const existingObjetivos = dbState.objetivos.filter(o => o.periodo_mes === officialPeriod).length;
+  const existingCobertura = dbState.cobertura.filter(c => c.periodo_mes === officialPeriod).length;
+  const hasExistingData = existingVentas > 0 || existingObjetivos > 0 || existingCobertura > 0;
+
+  const periodMismatchWarning = Boolean(
+    preview &&
+    preview.periodos.length > 0 &&
+    !preview.periodos.includes(officialPeriod)
+  );
+
   // Replace mode selections
-  const [targetPeriodToReplace, setTargetPeriodToReplace] = useState<string>('sept-26');
   const [sourcesToReplace, setSourcesToReplace] = useState<{
     ventas: boolean;
     objetivos: boolean;
@@ -76,6 +111,23 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
   const isAdmin = userRole === 'admin';
 
+  // Synchronize detected period when parsing file
+  const syncDetectedPeriod = (periodos: string[]) => {
+    if (periodos.length > 0) {
+      const detected = periodos[0];
+      const [mCode, yCode] = detected.split('-');
+      if (mCode && MONTH_OPTIONS.some(m => m.code === mCode)) {
+        setSelectedMonth(mCode);
+      }
+      if (yCode) {
+        const fullY = yCode.length === 2 ? `20${yCode}` : yCode;
+        if (YEAR_OPTIONS.includes(fullY)) {
+          setSelectedYear(fullY);
+        }
+      }
+    }
+  };
+
   // Handle file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,9 +140,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     try {
       const parsedPreview = await parseExcelOrCsvFile(file);
       setPreview(parsedPreview);
-      if (parsedPreview.periodos.length > 0) {
-        setTargetPeriodToReplace(parsedPreview.periodos[0]);
-      }
+      syncDetectedPeriod(parsedPreview.periodos);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setExecutionResult({
@@ -113,9 +163,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
       setSelectedFile(file);
       const parsedPreview = await parseExcelOrCsvFile(file);
       setPreview(parsedPreview);
-      if (parsedPreview.periodos.length > 0) {
-        setTargetPeriodToReplace(parsedPreview.periodos[0]);
-      }
+      syncDetectedPeriod(parsedPreview.periodos);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setExecutionResult({
@@ -139,7 +187,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
           dbState,
           {
             filename: preview.filename,
-            periodos: preview.periodos
+            periodos: [officialPeriod],
+            officialPeriod: officialPeriod
           },
           preview.objetivosData,
           preview.ventasData,
@@ -149,7 +198,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         onUpdateDbState(result.updatedState);
         setExecutionResult({
           success: true,
-          message: `Importación incremental ejecutada con éxito. Idempotencia asegurada: registros duplicados actualizados sin replicar filas.`,
+          message: `Importación incremental ejecutada con éxito para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Idempotencia asegurada: registros duplicados actualizados sin replicar filas.`,
           stats: result.stats
         });
       } else {
@@ -161,7 +210,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
         const result = executeReplacePeriodImport(
           dbState,
-          targetPeriodToReplace,
+          officialPeriod,
           fuentesArr,
           preview.filename,
           preview.objetivosData,
@@ -172,7 +221,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         onUpdateDbState(result.updatedState);
         setExecutionResult({
           success: true,
-          message: `Reemplazo atómico completado para el período '${targetPeriodToReplace}'. Se eliminaron los datos previos seleccionados y se insertaron los nuevos. Los demás meses permanecen intactos.`,
+          message: `Reemplazo atómico completado para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Se eliminaron los datos previos seleccionados y se insertaron los nuevos. Los demás meses permanecen intactos.`,
           stats: result.deletedCounts
         });
       }
@@ -433,6 +482,94 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               </div>
             )}
 
+            {/* OBLIGATORY OFFICIAL PERIOD SELECTOR & CONSISTENCY VALIDATION */}
+            <div className="border border-[#C5F467]/40 bg-[#0B0D10] p-4 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#242C37] pb-3">
+                <div>
+                  <div className="text-[10px] text-[#C5F467] font-bold uppercase tracking-wider">
+                    PASO OBLIGATORIO: ASIGNACIÓN DE PERÍODO OFICIAL
+                  </div>
+                  <h4 className="text-xs font-bold text-[#F1F5F9]">
+                    Seleccione el Mes y Año que clasificarán los registros de este archivo
+                  </h4>
+                </div>
+                <div className="text-xs font-bold px-2.5 py-1 border border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]">
+                  Período Oficial: {formatPeriodDisplay(officialPeriod)} ({officialPeriod})
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] text-[#626D7C] uppercase mb-1 font-bold">
+                    Mes de Referencia Comercial (Obligatorio):
+                  </label>
+                  <select
+                    value={selectedMonth}
+                    onChange={e => setSelectedMonth(e.target.value)}
+                    className="h-9 w-full border border-[#242C37] bg-[#12161C] px-3 text-xs font-bold text-[#F1F5F9] focus:border-[#C5F467]"
+                  >
+                    {MONTH_OPTIONS.map(m => (
+                      <option key={m.code} value={m.code}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-[#626D7C] uppercase mb-1 font-bold">
+                    Año Calendario (Obligatorio):
+                  </label>
+                  <select
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(e.target.value)}
+                    className="h-9 w-full border border-[#242C37] bg-[#12161C] px-3 text-xs font-bold text-[#F1F5F9] focus:border-[#C5F467]"
+                  >
+                    {YEAR_OPTIONS.map(y => (
+                      <option key={y} value={y}>
+                        Año {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Warning if internal file dates differ from the assigned period */}
+              {periodMismatchWarning && (
+                <div className="border border-[#F59E0B]/30 bg-[#F59E0B]/10 p-3 text-xs text-[#F59E0B] flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Advertencia de Asignación Manual Prevaleciente:</span>
+                    <p className="font-sans text-[11px] mt-0.5 leading-normal text-slate-200">
+                      El archivo contiene referencias a fechas de <strong>{preview.periodos.join(', ')}</strong>. Conforme a las reglas de control, <strong>prevalecerá el período asignado manualmente: {formatPeriodDisplay(officialPeriod)} ({officialPeriod})</strong>, el cual clasificará todos los registros importados en el dashboard y el histórico.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Status of prior data for this period */}
+              {hasExistingData ? (
+                <div className="border border-[#FB7185]/40 bg-[#FB7185]/10 p-3 text-xs text-[#FB7185]">
+                  <div className="flex items-center gap-2 font-bold mb-1">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>Datos Preexistentes Detectados para {formatPeriodDisplay(officialPeriod)}:</span>
+                  </div>
+                  <p className="font-sans text-slate-200 text-[11px] leading-normal">
+                    Ya existen registros cargados para este período en la base de datos: <strong>{existingVentas}</strong> ventas, <strong>{existingObjetivos}</strong> objetivos y <strong>{existingCobertura}</strong> registros de cobertura.
+                  </p>
+                  <div className="mt-2 text-[10px] text-[#FB7185] font-sans">
+                    • <strong>Modalidad A</strong>: Actualizará las filas coincidentes sin borrar el resto.<br />
+                    • <strong>Modalidad B</strong>: Reemplazará completamente los registros de este período en las fuentes que elija.
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-[#C5F467]/30 bg-[#12161C] p-3 text-xs text-[#C5F467] flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>Nuevo período para la serie histórica: No se registran datos previos para {formatPeriodDisplay(officialPeriod)}.</span>
+                </div>
+              )}
+            </div>
+
             {/* MODALITY SELECTION */}
             <div className="border border-[#242C37] bg-[#0B0D10] p-4">
               <div className="text-xs font-bold uppercase tracking-wider text-[#929EAD] mb-3">
@@ -451,7 +588,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                   <div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#F1F5F9]">
-                        Modalidad A: Agregar nuevos períodos / registros
+                        Modalidad A: Inserción / Actualización Incremental
                       </span>
                       <input
                         type="radio"
@@ -462,7 +599,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                       />
                     </div>
                     <p className="mt-2 text-[11px] text-[#929EAD] font-sans leading-relaxed">
-                      Inserta nuevos meses manteniendo intactos los períodos existentes. Detecta registros ya importados mediante clave única y previene duplicados.
+                      Incorpora los registros asignándolos al período <strong>{formatPeriodDisplay(officialPeriod)}</strong>. Si ya existen filas con la misma clave única (período + ruta + vendedor + producto), actualiza los valores sin replicar registros. Mantiene intactos todos los demás meses.
                     </p>
                   </div>
                   <div className="mt-3 text-[10px] font-semibold text-[#C5F467]">
@@ -481,7 +618,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                   <div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#F1F5F9]">
-                        Modalidad B: Reemplazar un período existente
+                        Modalidad B: Reemplazo Atómico del Período
                       </span>
                       <input
                         type="radio"
@@ -492,7 +629,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                       />
                     </div>
                     <p className="mt-2 text-[11px] text-[#929EAD] font-sans leading-relaxed">
-                      Reemplaza exclusivamente los datos del período seleccionado en las fuentes elegidas. Los demás meses y fuentes permanecen intactos.
+                      Elimina previamente y de forma atómica los datos preexistentes del período <strong>{formatPeriodDisplay(officialPeriod)}</strong> en las fuentes seleccionadas, e inserta las nuevas filas. Todos los demás meses permanecen completamente inalterados.
                     </p>
                   </div>
                   <div className="mt-3 text-[10px] font-semibold text-[#FB7185]">
@@ -505,77 +642,53 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               {operationType === 'replace' && (
                 <div className="mt-4 border border-[#FB7185]/30 bg-[#12161C] p-3 space-y-3">
                   <div className="text-xs font-bold text-[#FB7185]">
-                    Configuración del Reemplazo Atómico:
+                    Configuración del Reemplazo Atómico para: {formatPeriodDisplay(officialPeriod)} ({officialPeriod})
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-[10px] text-[#626D7C] uppercase mb-1">
-                        Período que será reemplazado:
+                  <div>
+                    <label className="block text-[10px] text-[#626D7C] uppercase mb-1">
+                      Fuentes a reemplazar en {formatPeriodDisplay(officialPeriod)}:
+                    </label>
+                    <div className="flex items-center gap-4 text-xs text-[#F1F5F9]">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={sourcesToReplace.ventas}
+                          onChange={e =>
+                            setSourcesToReplace({ ...sourcesToReplace, ventas: e.target.checked })
+                          }
+                          className="accent-[#C5F467]"
+                        />
+                        <span>Ventas ({preview.ventasCount} filas nuevas)</span>
                       </label>
-                      <select
-                        value={targetPeriodToReplace}
-                        onChange={e => setTargetPeriodToReplace(e.target.value)}
-                        className="h-8 w-full border border-[#242C37] bg-[#0B0D10] px-2 text-xs font-bold text-[#F1F5F9]"
-                      >
-                        {Array.from(
-                          new Set([
-                            ...preview.periodos,
-                            ...dbState.ventas.map((v: VentaRecord) => v.periodo_mes)
-                          ])
-                        ).map(p => (
-                          <option key={p} value={p}>
-                            {formatPeriodDisplay(p).toUpperCase()} ({p})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] text-[#626D7C] uppercase mb-1">
-                        Fuentes a reemplazar:
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={sourcesToReplace.objetivos}
+                          onChange={e =>
+                            setSourcesToReplace({
+                              ...sourcesToReplace,
+                              objetivos: e.target.checked
+                            })
+                          }
+                          className="accent-[#C5F467]"
+                        />
+                        <span>Objetivos ({preview.objetivosCount} filas nuevas)</span>
                       </label>
-                      <div className="flex items-center gap-4 text-xs text-[#F1F5F9]">
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={sourcesToReplace.ventas}
-                            onChange={e =>
-                              setSourcesToReplace({ ...sourcesToReplace, ventas: e.target.checked })
-                            }
-                            className="accent-[#C5F467]"
-                          />
-                          <span>Ventas</span>
-                        </label>
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={sourcesToReplace.objetivos}
-                            onChange={e =>
-                              setSourcesToReplace({
-                                ...sourcesToReplace,
-                                objetivos: e.target.checked
-                              })
-                            }
-                            className="accent-[#C5F467]"
-                          />
-                          <span>Objetivos</span>
-                        </label>
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={sourcesToReplace.cobertura}
-                            onChange={e =>
-                              setSourcesToReplace({
-                                ...sourcesToReplace,
-                                cobertura: e.target.checked
-                              })
-                            }
-                            className="accent-[#C5F467]"
-                          />
-                          <span>Cobertura</span>
-                        </label>
-                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={sourcesToReplace.cobertura}
+                          onChange={e =>
+                            setSourcesToReplace({
+                              ...sourcesToReplace,
+                              cobertura: e.target.checked
+                            })
+                          }
+                          className="accent-[#C5F467]"
+                        />
+                        <span>Cobertura ({preview.coberturaCount} filas nuevas)</span>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -639,13 +752,13 @@ export const DataManagement: React.FC<DataManagementProps> = ({
 
             <p className="text-[#929EAD] font-sans leading-relaxed">
               Está a punto de <strong>reemplazar permanentemente</strong> los registros del período{' '}
-              <strong className="text-[#F1F5F9]">{formatPeriodDisplay(targetPeriodToReplace)} ({targetPeriodToReplace})</strong> en las fuentes seleccionadas:
+              <strong className="text-[#F1F5F9]">{formatPeriodDisplay(officialPeriod)} ({officialPeriod})</strong> en las fuentes seleccionadas:
             </p>
 
             <ul className="mt-2 space-y-1 text-slate-300 list-disc list-inside font-sans">
-              {sourcesToReplace.ventas && <li>Se eliminarán las ventas previas de {targetPeriodToReplace} y se insertarán las nuevas.</li>}
-              {sourcesToReplace.objetivos && <li>Se eliminarán los objetivos previos de {targetPeriodToReplace} y se insertarán los nuevos.</li>}
-              {sourcesToReplace.cobertura && <li>Se eliminará la cobertura previa de {targetPeriodToReplace} y se insertará la nueva.</li>}
+              {sourcesToReplace.ventas && <li>Se eliminarán las ventas previas de {formatPeriodDisplay(officialPeriod)} y se insertarán {preview?.ventasCount} filas nuevas.</li>}
+              {sourcesToReplace.objetivos && <li>Se eliminarán los objetivos previos de {formatPeriodDisplay(officialPeriod)} y se insertarán {preview?.objetivosCount} filas nuevas.</li>}
+              {sourcesToReplace.cobertura && <li>Se eliminará la cobertura previa de {formatPeriodDisplay(officialPeriod)} y se insertarán {preview?.coberturaCount} filas nuevas.</li>}
             </ul>
 
             <div className="mt-3 border border-[#242C37] bg-[#0B0D10] p-2.5 text-[11px] text-[#626D7C]">

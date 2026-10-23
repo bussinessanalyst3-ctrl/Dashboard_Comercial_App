@@ -3,13 +3,12 @@ import {
   DatabaseState,
   FilterState,
   UserRole,
+  UserProfile,
   VentaRecord,
-  ObjetivoRecord
+  ObjetivoRecord,
+  AuditLog
 } from './types/commercial';
-import {
-  loadDatabase,
-  switchUserRole
-} from './services/dbStore';
+import { loadDatabase } from './services/dbStore';
 import {
   filterVentas,
   filterObjetivos,
@@ -19,6 +18,7 @@ import {
   getHistoricalTimeline
 } from './services/calculations';
 import { testSupabaseConnection } from './services/supabaseClient';
+import { getStoredSession, logoutUser } from './services/authService';
 import { AppTheme } from './styles/theme';
 import { Sidebar, ActiveTab } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -32,8 +32,12 @@ import { HistoricalComparison } from './components/HistoricalComparison';
 import { DataManagement } from './components/DataManagement';
 import { AuditLogView } from './components/AuditLogView';
 import { SupabaseConfigView } from './components/SupabaseConfigView';
+import { UserManagementView } from './components/UserManagementView';
+import { LoginScreen } from './components/LoginScreen';
+import { Shield } from 'lucide-react';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getStoredSession());
   const [dbState, setDbState] = useState<DatabaseState>(() => loadDatabase());
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -147,11 +151,18 @@ export default function App() {
     [dbState.ventas, dbState.objetivos, dbState.cobertura, filters]
   );
 
-  // Toggle user role between 'admin' and 'consulta'
-  const handleToggleRole = () => {
-    const nextRole: UserRole = dbState.currentUser.role === 'admin' ? 'consulta' : 'admin';
-    const updated = switchUserRole(dbState, nextRole);
-    setDbState(updated);
+  // Route Protection: If non-admin attempts to access admin tabs, redirect immediately to 'overview'
+  useEffect(() => {
+    const adminTabs: ActiveTab[] = ['import', 'users', 'audit', 'supabase'];
+    if (currentUser && currentUser.role !== 'admin' && adminTabs.includes(activeTab)) {
+      setActiveTab('overview');
+    }
+  }, [currentUser, activeTab]);
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setActiveTab('overview');
   };
 
   const toggleTheme = () => {
@@ -179,14 +190,26 @@ export default function App() {
     setFilters(prev => ({ ...prev, vendedor: vendor }));
   };
 
+  // Authentication gate: Render login screen if no authenticated user session
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+        supabaseConnected={supabaseConnected}
+      />
+    );
+  }
+
   return (
     <div className={`flex h-screen w-screen overflow-hidden ${theme === 'light' ? 'theme-light bg-[#F8FAFC] text-[#0F172A]' : 'bg-[#0B0D10] text-[#F1F5F9]'}`}>
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        userRole={dbState.currentUser.role}
-        onToggleRole={handleToggleRole}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         supabaseConnected={supabaseConnected}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
@@ -200,8 +223,8 @@ export default function App() {
         <Header
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           currentPeriod={filters.periodo}
-          userRole={dbState.currentUser.role}
-          onToggleRole={handleToggleRole}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           supabaseConnected={supabaseConnected}
           ventas={filteredVentas}
           objetivos={filteredObjetivos}
@@ -307,29 +330,67 @@ export default function App() {
               />
             )}
 
-            {/* TAB 7: DATA MANAGEMENT / IMPORT */}
-            {activeTab === 'import' && (
+            {/* TAB 7: DATA MANAGEMENT / IMPORT (ADMIN ONLY) */}
+            {activeTab === 'import' && currentUser.role === 'admin' && (
               <DataManagement
                 dbState={dbState}
                 onUpdateDbState={setDbState}
-                userRole={dbState.currentUser.role}
+                userRole={currentUser.role}
                 onSwitchToAudit={() => setActiveTab('audit')}
               />
             )}
 
-            {/* TAB 8: AUDITORÍA */}
-            {activeTab === 'audit' && (
+            {/* TAB: USER MANAGEMENT (ADMIN ONLY) */}
+            {activeTab === 'users' && currentUser.role === 'admin' && (
+              <UserManagementView
+                currentUser={currentUser}
+                onAuditAction={(action, details) => {
+                  const newLog: AuditLog = {
+                    id: `log-${Date.now()}`,
+                    action: action as any,
+                    details: details,
+                    user_email: currentUser.email,
+                    user_role: currentUser.role,
+                    created_at: new Date().toISOString()
+                  };
+                  setDbState(prev => ({
+                    ...prev,
+                    auditLogs: [newLog, ...prev.auditLogs]
+                  }));
+                }}
+              />
+            )}
+
+            {/* TAB 8: AUDITORÍA (ADMIN ONLY) */}
+            {activeTab === 'audit' && currentUser.role === 'admin' && (
               <AuditLogView
                 batches={dbState.batches}
                 auditLogs={dbState.auditLogs}
               />
             )}
 
-            {/* TAB 9: SUPABASE & SQL */}
-            {activeTab === 'supabase' && (
+            {/* TAB 9: SUPABASE & SQL (ADMIN ONLY) */}
+            {activeTab === 'supabase' && currentUser.role === 'admin' && (
               <SupabaseConfigView
                 onConnectionStatusChange={setSupabaseConnected}
               />
+            )}
+
+            {/* Access Denied Guard for Commercial Role attempting restricted routes */}
+            {['import', 'users', 'audit', 'supabase'].includes(activeTab) && currentUser.role !== 'admin' && (
+              <div className="border border-red-500/30 bg-red-950/20 p-8 text-center">
+                <Shield className="mx-auto h-12 w-12 text-red-400 mb-3" />
+                <h2 className="font-mono text-lg font-bold text-red-300">ACCESO RESTRINGIDO (403)</h2>
+                <p className="mt-2 text-sm text-[#929EAD] max-w-lg mx-auto">
+                  Este módulo requiere permisos administrativos. Tu cuenta actual (<span className="text-[#F1F5F9] font-mono">{currentUser.email}</span>) tiene perfil <span className="text-[#38BDF8] font-bold">Equipo Comercial</span>, con acceso exclusivo a consulta y visualización.
+                </p>
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className="mt-5 inline-flex items-center gap-2 px-4 py-2 border border-[#C5F467] bg-[#C5F467]/10 text-xs font-mono font-bold text-[#C5F467] hover:bg-[#C5F467] hover:text-[#0B0D10] transition-colors"
+                >
+                  Volver al Dashboard
+                </button>
+              </div>
             )}
           </div>
         </main>

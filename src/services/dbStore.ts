@@ -114,6 +114,7 @@ export function executeAppendImport(
   batchMeta: {
     filename: string;
     periodos: string[];
+    officialPeriod?: string;
   },
   newObjetivos: Partial<ObjetivoRecord>[],
   newVentas: Partial<VentaRecord>[],
@@ -122,8 +123,13 @@ export function executeAppendImport(
   updatedState: DatabaseState;
   stats: { insertedVentas: number; updatedVentas: number; insertedObj: number; insertedCob: number };
 } {
+  if (currentState.currentUser.role !== 'admin') {
+    throw new Error('Operación no autorizada: Solo el Administrador puede importar o modificar datos comerciales.');
+  }
+
   const batchId = 'batch_' + Date.now();
   const startTime = Date.now();
+  const officialPeriod = batchMeta.officialPeriod;
 
   let insertedV = 0;
   let updatedV = 0;
@@ -138,12 +144,14 @@ export function executeAppendImport(
   });
 
   newVentas.forEach((v, idx) => {
-    const key = `${v.periodo_mes}|${v.codigo_ruta}|${v.vendedor}|${v.producto}`;
+    const periodToUse = officialPeriod || v.periodo_mes || 'sept-26';
+    const key = `${periodToUse}|${v.codigo_ruta}|${v.vendedor}|${v.producto}`;
     const existing = ventasMap.get(key);
     if (existing) {
       // Update values
       ventasMap.set(key, {
         ...existing,
+        periodo_mes: periodToUse,
         ventas_toneladas: v.ventas_toneladas ?? existing.ventas_toneladas,
         ventas_facturacion: v.ventas_facturacion ?? existing.ventas_facturacion,
         zona: v.zona || existing.zona,
@@ -154,7 +162,7 @@ export function executeAppendImport(
     } else {
       ventasMap.set(key, {
         id: `v_${Date.now()}_${idx}`,
-        periodo_mes: v.periodo_mes || 'sept-26',
+        periodo_mes: periodToUse,
         zona: v.zona || 'SIN ZONA',
         supervisor: v.supervisor || 'SIN SUPERVISOR',
         codigo_ruta: v.codigo_ruta || 'SIN RUTA',
@@ -177,11 +185,13 @@ export function executeAppendImport(
   });
 
   newObjetivos.forEach((o, idx) => {
-    const key = `${o.periodo_mes}|${o.codigo_ruta}|${o.vendedor}|${o.producto}`;
+    const periodToUse = officialPeriod || o.periodo_mes || 'sept-26';
+    const key = `${periodToUse}|${o.codigo_ruta}|${o.vendedor}|${o.producto}`;
     const existing = objMap.get(key);
     if (existing) {
       objMap.set(key, {
         ...existing,
+        periodo_mes: periodToUse,
         toneladas: o.toneladas ?? existing.toneladas,
         facturacion: o.facturacion ?? existing.facturacion,
         zona: o.zona || existing.zona,
@@ -191,7 +201,7 @@ export function executeAppendImport(
     } else {
       objMap.set(key, {
         id: `obj_${Date.now()}_${idx}`,
-        periodo_mes: o.periodo_mes || 'sept-26',
+        periodo_mes: periodToUse,
         zona: o.zona || 'SIN ZONA',
         supervisor: o.supervisor || 'SIN SUPERVISOR',
         codigo_ruta: o.codigo_ruta || 'SIN RUTA',
@@ -214,11 +224,13 @@ export function executeAppendImport(
   });
 
   newCobertura.forEach((c, idx) => {
-    const key = `${c.periodo_mes}|${c.codigo_ruta}|${c.vendedor}`;
+    const periodToUse = officialPeriod || c.periodo_mes || 'sept-26';
+    const key = `${periodToUse}|${c.codigo_ruta}|${c.vendedor}`;
     const existing = cobMap.get(key);
     if (existing) {
       cobMap.set(key, {
         ...existing,
+        periodo_mes: periodToUse,
         cobertura_planificada: c.cobertura_planificada ?? existing.cobertura_planificada,
         clientes_reales: c.clientes_reales ?? existing.clientes_reales,
         zona: c.zona || existing.zona,
@@ -228,7 +240,7 @@ export function executeAppendImport(
     } else {
       cobMap.set(key, {
         id: `cob_${Date.now()}_${idx}`,
-        periodo_mes: c.periodo_mes || 'sept-26',
+        periodo_mes: periodToUse,
         zona: c.zona || 'SIN ZONA',
         supervisor: c.supervisor || 'SIN SUPERVISOR',
         codigo_ruta: c.codigo_ruta || 'SIN RUTA',
@@ -316,6 +328,10 @@ export function executeReplacePeriodImport(
   updatedState: DatabaseState;
   deletedCounts: { ventas: number; objetivos: number; cobertura: number };
 } {
+  if (currentState.currentUser.role !== 'admin') {
+    throw new Error('Operación no autorizada: Solo el Administrador puede reemplazar datos comerciales.');
+  }
+
   const batchId = 'batch_rep_' + Date.now();
   const startTime = Date.now();
 
@@ -334,9 +350,8 @@ export function executeReplacePeriodImport(
     newVentasList = newVentasList.filter(v => v.periodo_mes !== targetPeriod);
     delV = prevCount - newVentasList.length;
 
-    // Add only new records belonging to this period
-    const toInsert = newVentas.filter(v => v.periodo_mes === targetPeriod || !v.periodo_mes);
-    toInsert.forEach((v, idx) => {
+    // Add all incoming records assigning targetPeriod
+    newVentas.forEach((v, idx) => {
       newVentasList.push({
         id: `v_rep_${Date.now()}_${idx}`,
         periodo_mes: targetPeriod,
@@ -359,8 +374,7 @@ export function executeReplacePeriodImport(
     newObjList = newObjList.filter(o => o.periodo_mes !== targetPeriod);
     delO = prevCount - newObjList.length;
 
-    const toInsert = newObjetivos.filter(o => o.periodo_mes === targetPeriod || !o.periodo_mes);
-    toInsert.forEach((o, idx) => {
+    newObjetivos.forEach((o, idx) => {
       newObjList.push({
         id: `obj_rep_${Date.now()}_${idx}`,
         periodo_mes: targetPeriod,
@@ -383,8 +397,7 @@ export function executeReplacePeriodImport(
     newCobList = newCobList.filter(c => c.periodo_mes !== targetPeriod);
     delC = prevCount - newCobList.length;
 
-    const toInsert = newCobertura.filter(c => c.periodo_mes === targetPeriod || !c.periodo_mes);
-    toInsert.forEach((c, idx) => {
+    newCobertura.forEach((c, idx) => {
       newCobList.push({
         id: `cob_rep_${Date.now()}_${idx}`,
         periodo_mes: targetPeriod,
@@ -489,6 +502,10 @@ export async function clearAllCommercialData(
   clearedState: DatabaseState;
   remoteCleared?: boolean;
 }> {
+  if (user.role !== 'admin') {
+    throw new Error('Operación no autorizada: Solo el Administrador puede vaciar la base de datos.');
+  }
+
   const clearAudit: AuditLog = {
     id: 'audit_clear_' + Date.now(),
     action: 'CLEAR_DATABASE',

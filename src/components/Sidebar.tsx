@@ -16,9 +16,11 @@ import {
   Sun,
   Moon,
   Activity,
-  BarChart2
+  BarChart2,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
-import { UserRole } from '../types/commercial';
+import { UserProfile, UserRole } from '../types/commercial';
 import { AppTheme } from '../styles/theme';
 
 export type ActiveTab =
@@ -29,14 +31,15 @@ export type ActiveTab =
   | 'rankings'
   | 'history'
   | 'import'
+  | 'users'
   | 'audit'
   | 'supabase';
 
 interface SidebarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  userRole: UserRole;
-  onToggleRole: () => void;
+  currentUser: UserProfile;
+  onLogout: () => void;
   supabaseConnected: boolean;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
@@ -47,72 +50,95 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
-  userRole,
-  onToggleRole,
+  currentUser,
+  onLogout,
   supabaseConnected,
   isOpenMobile,
   onCloseMobile,
   theme,
   onToggleTheme
 }) => {
-  const navItems = [
+  const userRole = currentUser.role;
+  const allNavItems = [
     {
       id: 'overview' as ActiveTab,
       label: 'Overview',
       sub: 'Performance Studio',
       icon: LayoutDashboard,
-      badge: 'Principal'
+      badge: 'Principal',
+      adminOnly: false
     },
     {
       id: 'sales' as ActiveTab,
       label: 'Sales Intelligence',
       sub: 'Volumen & Mix',
-      icon: BarChart2
+      icon: BarChart2,
+      adminOnly: false
     },
     {
       id: 'goals' as ActiveTab,
       label: 'Objetivos & Varianza',
       sub: 'Metas dimensionales',
-      icon: Target
+      icon: Target,
+      adminOnly: false
     },
     {
       id: 'coverage' as ActiveTab,
       label: 'Cobertura',
       sub: 'Clientes & Rutas',
-      icon: Users
+      icon: Users,
+      adminOnly: false
     },
     {
       id: 'rankings' as ActiveTab,
       label: 'Rankings & Pareto',
       sub: 'Concentración 80/20',
-      icon: Award
+      icon: Award,
+      adminOnly: false
     },
     {
       id: 'history' as ActiveTab,
       label: 'Historial',
       sub: 'Series & MoM/YoY',
-      icon: CalendarDays
+      icon: CalendarDays,
+      adminOnly: false
     },
     {
       id: 'import' as ActiveTab,
       label: 'Data Management',
       sub: 'Excel & Reemplazos',
       icon: FileSpreadsheet,
-      badge: userRole === 'admin' ? 'Admin' : 'Lectura'
+      badge: 'Admin',
+      adminOnly: true
+    },
+    {
+      id: 'users' as ActiveTab,
+      label: 'Gestión Usuarios',
+      sub: 'Roles & Permisos',
+      icon: UserCheck,
+      badge: 'Admin',
+      adminOnly: true
     },
     {
       id: 'audit' as ActiveTab,
       label: 'Auditoría',
       sub: 'Trazabilidad de lotes',
-      icon: History
+      icon: History,
+      badge: 'Admin',
+      adminOnly: true
     },
     {
       id: 'supabase' as ActiveTab,
       label: 'Supabase & SQL',
       sub: 'PostgreSQL & RLS',
-      icon: Database
+      icon: Database,
+      badge: 'Admin',
+      adminOnly: true
     }
   ];
+
+  // Restrict items: commercial team ONLY sees visualization tabs
+  const navItems = allNavItems.filter(item => !item.adminOnly || userRole === 'admin');
 
   return (
     <>
@@ -229,17 +255,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`flex h-6 w-6 shrink-0 items-center justify-center text-xs font-bold ${
                     userRole === 'admin'
                       ? 'border border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
-                      : 'border border-[#242C37] bg-[#191F27] text-[#929EAD]'
+                      : 'border border-[#38BDF8]/40 bg-[#38BDF8]/10 text-[#38BDF8]'
                   }`}
                 >
                   {userRole === 'admin' ? <Shield className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </div>
                 <div className="min-w-0 truncate font-mono">
                   <div className="text-[11px] font-bold text-[#F1F5F9] truncate">
-                    {userRole === 'admin' ? 'Admin / Director' : 'Consulta / Analista'}
+                    {currentUser.full_name || currentUser.email}
                   </div>
-                  <div className="text-[9px] text-[#626D7C] uppercase">
-                    RBAC: {userRole}
+                  <div className={`text-[9px] font-bold uppercase tracking-wider ${
+                    userRole === 'admin' ? 'text-[#C5F467]' : 'text-[#38BDF8]'
+                  }`}>
+                    {userRole === 'admin' ? 'ADMINISTRADOR' : 'EQUIPO COMERCIAL'}
                   </div>
                 </div>
               </div>
@@ -254,13 +282,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
 
-            <div className="mt-2 pt-1.5 border-t border-[#242C37] flex items-center justify-between text-[10px] font-mono">
-              <span className="text-[#626D7C]">Alternar rol:</span>
+            <div className="mt-2 pt-2 border-t border-[#242C37] flex items-center justify-between text-[10px] font-mono">
+              <span className="text-[#626D7C] truncate max-w-[130px]">{currentUser.email}</span>
               <button
-                onClick={onToggleRole}
-                className="text-[#C5F467] hover:underline font-bold"
+                onClick={onLogout}
+                className="inline-flex items-center gap-1 text-[#FB7185] hover:text-[#f43f5e] font-bold transition-colors"
+                title="Cerrar sesión"
               >
-                Cambiar a {userRole === 'admin' ? 'Consulta' : 'Admin'}
+                <LogOut className="h-3 w-3" />
+                <span>Salir</span>
               </button>
             </div>
           </div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Menu,
   Download,
@@ -7,16 +6,17 @@ import {
   Calendar,
   Layers,
   Database,
-  Filter
+  Filter,
+  LogOut
 } from 'lucide-react';
-import { UserRole, VentaRecord, ObjetivoRecord, CoberturaRecord } from '../types/commercial';
+import { UserProfile, UserRole, VentaRecord, ObjetivoRecord, CoberturaRecord } from '../types/commercial';
 import { formatPeriodDisplay, exportToExcel } from '../services/dataNormalizer';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
   currentPeriod: string;
-  userRole: UserRole;
-  onToggleRole: () => void;
+  currentUser: UserProfile;
+  onLogout: () => void;
   supabaseConnected: boolean;
   ventas: VentaRecord[];
   objetivos: ObjetivoRecord[];
@@ -28,8 +28,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onOpenMobileMenu,
   currentPeriod,
-  userRole,
-  onToggleRole,
+  currentUser,
+  onLogout,
   supabaseConnected,
   ventas,
   objetivos,
@@ -110,22 +110,32 @@ export const Header: React.FC<HeaderProps> = ({
           {supabaseConnected ? 'Supabase' : 'Local'}
         </div>
 
-        {/* User Role Switcher */}
-        <button
-          onClick={onToggleRole}
-          className={`inline-flex items-center gap-1.5 border px-2 py-1 text-xs font-bold transition-colors ${
-            userRole === 'admin'
+        {/* User Role Badge */}
+        <div
+          className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-xs font-bold ${
+            currentUser.role === 'admin'
               ? 'border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
-              : 'border-[#242C37] bg-[#12161C] text-[#929EAD]'
+              : 'border-[#38BDF8]/40 bg-[#38BDF8]/10 text-[#38BDF8]'
           }`}
-          title="Click para alternar rol de usuario (Admin / Consulta)"
         >
-          {userRole === 'admin' ? (
+          {currentUser.role === 'admin' ? (
             <Shield className="h-3 w-3 text-[#C5F467]" />
           ) : (
-            <Eye className="h-3 w-3 text-[#626D7C]" />
+            <Eye className="h-3 w-3 text-[#38BDF8]" />
           )}
-          <span className="uppercase">{userRole}</span>
+          <span className="uppercase text-[10px] tracking-wider">
+            {currentUser.role === 'admin' ? 'ADMIN' : 'COMERCIAL'}
+          </span>
+        </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={onLogout}
+          className="inline-flex items-center gap-1 border border-[#242C37] bg-[#12161C] px-2 py-1 text-xs text-[#929EAD] hover:text-[#FB7185] hover:border-[#FB7185]/40 transition-colors"
+          title="Cerrar Sesión"
+        >
+          <LogOut className="h-3 w-3" />
+          <span className="hidden md:inline">Salir</span>
         </button>
       </div>
     </header>

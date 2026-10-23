@@ -24,7 +24,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     batch_id: 'batch_initial_seed',
     action: 'IMPORT_APPEND',
     details: 'Carga inicial de datos de sept-26, histórico de ago-26, jul-26 y sept-25 (1044 registros de ventas, 1044 objetivos, 132 coberturas)',
-    user_email: 'admin@empresa.com.py',
+    user_email: 'sistema@empresa.com.py',
     user_role: 'admin',
     created_at: '2026-10-01T08:00:05Z',
     periodo_afectado: 'sept-26'

@@ -179,15 +179,9 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthCheck> {
  */
 export const LOCAL_USERS: UserProfile[] = [
   {
-    id: 'usr_admin_1',
-    email: 'admin@empresa.com.py',
-    full_name: 'Director Comercial (Admin)',
+    id: 'usr_admin_master',
+    email: 'bussinessanalyst3@gmail.com',
+    full_name: 'Administrador Principal',
     role: 'admin'
-  },
-  {
-    id: 'usr_consulta_1',
-    email: 'analista@empresa.com.py',
-    full_name: 'Analista de Ventas (Consulta)',
-    role: 'consulta'
   }
 ];
