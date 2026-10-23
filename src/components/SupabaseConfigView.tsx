@@ -7,6 +7,7 @@ import {
   SupabaseHealthCheck
 } from '../services/supabaseClient';
 import { SUPABASE_SQL_SCHEMA } from '../services/sqlGenerator';
+import { seedSupabaseInitialData } from '../services/dbStore';
 import {
   Database,
   CheckCircle2,
@@ -19,7 +20,8 @@ import {
   GitBranch,
   Terminal,
   FileCode,
-  BookOpen
+  BookOpen,
+  UploadCloud
 } from 'lucide-react';
 
 interface SupabaseConfigViewProps {
@@ -32,6 +34,8 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<{ success: boolean; message: string } | null>(null);
   const [health, setHealth] = useState<SupabaseHealthCheck | null>(null);
   const [copiedSql, setCopiedSql] = useState(false);
   const [activeGuideTab, setActiveGuideTab] = useState<'sql' | 'supabase' | 'vercel' | 'github'>('sql');
@@ -67,6 +71,14 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
     setHealth(result);
     setIsTesting(false);
     onConnectionStatusChange?.(result.connected);
+  };
+
+  const handleSeed = async () => {
+    setIsSeeding(true);
+    setSeedResult(null);
+    const res = await seedSupabaseInitialData();
+    setSeedResult(res);
+    setIsSeeding(false);
   };
 
   const copySqlToClipboard = () => {
@@ -224,6 +236,43 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
                     {health.tablesFound.cobertura ? '✓ Detectada' : '✗ No existe'}
                   </strong>
                 </div>
+              </div>
+            )}
+
+            {health.connected && (
+              <div className="mt-4 pt-3 border-t border-[#242C37] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-[11px] text-[#929EAD]">
+                  ¿Deseas poblar la base de datos de Supabase con los 1.044 registros de ventas, objetivos y cobertura del archivo oficial <code className="text-[#F1F5F9] bg-[#191F27] px-1 py-0.5">sep_26_normalizada</code>?
+                </div>
+                <button
+                  onClick={handleSeed}
+                  disabled={isSeeding}
+                  className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/40 bg-[#C5F467]/20 px-3 py-1.5 text-xs font-bold text-[#C5F467] hover:bg-[#C5F467]/30 transition-colors disabled:opacity-50"
+                >
+                  {isSeeding ? (
+                    <>
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#C5F467] border-t-transparent" />
+                      Insertando datos en Supabase...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-4 w-4" />
+                      Sincronizar Dataset Inicial a Supabase
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {seedResult && (
+              <div
+                className={`mt-3 p-2.5 text-xs border ${
+                  seedResult.success
+                    ? 'border-[#C5F467]/50 bg-[#C5F467]/10 text-[#C5F467]'
+                    : 'border-[#FB7185]/50 bg-[#FB7185]/10 text-[#FB7185]'
+                }`}
+              >
+                {seedResult.message}
               </div>
             )}
           </div>

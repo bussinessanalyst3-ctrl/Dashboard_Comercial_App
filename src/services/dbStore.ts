@@ -501,6 +501,112 @@ export function switchUserRole(currentState: DatabaseState, role: UserRole): Dat
 }
 
 /**
+ * Seeds or synchronizes the complete initial dataset into Supabase PostgreSQL
+ */
+export async function seedSupabaseInitialData(): Promise<{
+  success: boolean;
+  message: string;
+  counts?: { ventas: number; objetivos: number; cobertura: number };
+}> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, message: 'Supabase no está conectado.' };
+  }
+
+  try {
+    // Determine table naming: com_* or comercial_*
+    let ventasTable = 'com_ventas';
+    const checkV = await client.from('com_ventas').select('id').limit(1);
+    if (checkV.error && checkV.error.code === '42P01') {
+      ventasTable = 'comercial_ventas';
+    }
+
+    let objetivosTable = 'com_objetivos';
+    const checkO = await client.from('com_objetivos').select('id').limit(1);
+    if (checkO.error && checkO.error.code === '42P01') {
+      objetivosTable = 'comercial_objetivos';
+    }
+
+    let coberturaTable = 'com_cobertura';
+    const checkC = await client.from('com_cobertura').select('id').limit(1);
+    if (checkC.error && checkC.error.code === '42P01') {
+      coberturaTable = 'comercial_cobertura';
+    }
+
+    // 1. Batch insert Objetivos in chunks of 250
+    const objRows = INITIAL_OBJETIVOS.map(o => ({
+      id: o.id,
+      zona: o.zona,
+      supervisor: o.supervisor,
+      codigo_ruta: o.codigo_ruta,
+      vendedor: o.vendedor,
+      producto: o.producto,
+      [objetivosTable === 'com_objetivos' ? 'toneladas' : 'toneladas']: o.toneladas,
+      [objetivosTable === 'com_objetivos' ? 'facturacion' : 'facturacion']: o.facturacion,
+      [objetivosTable === 'com_objetivos' ? 'mes' : 'periodo_mes']: o.periodo_mes
+    }));
+
+    for (let i = 0; i < objRows.length; i += 250) {
+      const chunk = objRows.slice(i, i + 250);
+      const { error } = await client.from(objetivosTable).upsert(chunk);
+      if (error) console.warn('Error upserting objetivos chunk:', error.message);
+    }
+
+    // 2. Batch insert Ventas in chunks of 250
+    const ventasRows = INITIAL_VENTAS.map(v => ({
+      id: v.id,
+      zona: v.zona,
+      supervisor: v.supervisor,
+      codigo_ruta: v.codigo_ruta,
+      producto: v.producto,
+      ventas_toneladas: v.ventas_toneladas,
+      ventas_facturacion: v.ventas_facturacion,
+      [ventasTable === 'com_ventas' ? 'mes' : 'periodo_mes']: v.periodo_mes
+    }));
+
+    for (let i = 0; i < ventasRows.length; i += 250) {
+      const chunk = ventasRows.slice(i, i + 250);
+      const { error } = await client.from(ventasTable).upsert(chunk);
+      if (error) console.warn('Error upserting ventas chunk:', error.message);
+    }
+
+    // 3. Batch insert Cobertura in chunks of 250
+    const cobRows = INITIAL_COBERTURA.map(c => ({
+      id: c.id,
+      zona: c.zona,
+      supervisor: c.supervisor,
+      codigo_ruta: c.codigo_ruta,
+      vendedor: c.vendedor,
+      [coberturaTable === 'com_cobertura' ? 'cobertura' : 'cobertura_planificada']: c.cobertura_planificada,
+      clientes_reales: c.clientes_reales,
+      [coberturaTable === 'com_cobertura' ? 'mes' : 'periodo_mes']: c.periodo_mes
+    }));
+
+    for (let i = 0; i < cobRows.length; i += 250) {
+      const chunk = cobRows.slice(i, i + 250);
+      const { error } = await client.from(coberturaTable).upsert(chunk);
+      if (error) console.warn('Error upserting cobertura chunk:', error.message);
+    }
+
+    return {
+      success: true,
+      message: `Población exitosa: ${ventasRows.length} ventas, ${objRows.length} objetivos y ${cobRows.length} registros de cobertura sincronizados en Supabase.`,
+      counts: {
+        ventas: ventasRows.length,
+        objetivos: objRows.length,
+        cobertura: cobRows.length
+      }
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    return {
+      success: false,
+      message: `Error al poblar datos en Supabase: ${errorMsg}`
+    };
+  }
+}
+
+/**
  * Asynchronously pushes audit and batch records to Supabase when connected
  */
 async function syncToSupabaseIfConnected(batch: ImportBatch, audit: AuditLog): Promise<void> {
@@ -508,37 +614,84 @@ async function syncToSupabaseIfConnected(batch: ImportBatch, audit: AuditLog): P
   if (!client) return;
 
   try {
-    await client.from('import_batches').insert([
-      {
-        id: batch.id,
-        filename: batch.filename,
-        periodos_detectados: batch.periodos_detectados,
-        fuentes_incluidas: batch.fuentes_incluidas,
-        tipo_operacion: batch.tipo_operacion,
-        registros_objetivos: batch.registros_objetivos,
-        registros_ventas: batch.registros_ventas,
-        registros_cobertura: batch.registros_cobertura,
-        status: batch.status,
-        created_by: batch.created_by,
-        created_at: batch.created_at,
-        duration_ms: batch.duration_ms,
-        notas: batch.notas
-      }
-    ]);
+    // Determine batch table name
+    let batchTable = 'com_import_batches';
+    const checkB = await client.from('com_import_batches').select('id').limit(1);
+    if (checkB.error && checkB.error.code === '42P01') {
+      batchTable = 'import_batches';
+    }
 
-    await client.from('import_audit_logs').insert([
-      {
-        id: audit.id,
-        batch_id: audit.batch_id,
-        action: audit.action,
-        details: audit.details,
-        user_email: audit.user_email,
-        user_role: audit.user_role,
-        periodo_afectado: audit.periodo_afectado,
-        created_at: audit.created_at
-      }
-    ]);
+    let auditTable = 'com_audit_logs';
+    const checkA = await client.from('com_audit_logs').select('id').limit(1);
+    if (checkA.error && checkA.error.code === '42P01') {
+      auditTable = 'import_audit_logs';
+    }
+
+    if (batchTable === 'com_import_batches') {
+      await client.from(batchTable).insert([
+        {
+          id: batch.id,
+          filename: batch.filename,
+          uploaded_at: batch.created_at,
+          uploaded_by: batch.created_by,
+          mode: batch.tipo_operacion === 'replace' ? 'replace_period' : 'append',
+          period: batch.periodos_detectados[0] || 'sept-26',
+          records_count: {
+            ventas: batch.registros_ventas,
+            objetivos: batch.registros_objetivos,
+            cobertura: batch.registros_cobertura
+          },
+          status: 'success',
+          error_summary: batch.notas
+        }
+      ]);
+    } else {
+      await client.from(batchTable).insert([
+        {
+          id: batch.id,
+          filename: batch.filename,
+          periodos_detectados: batch.periodos_detectados,
+          fuentes_incluidas: batch.fuentes_incluidas,
+          tipo_operacion: batch.tipo_operacion,
+          registros_objetivos: batch.registros_objetivos,
+          registros_ventas: batch.registros_ventas,
+          registros_cobertura: batch.registros_cobertura,
+          status: batch.status,
+          created_by: batch.created_by,
+          created_at: batch.created_at,
+          duration_ms: batch.duration_ms,
+          notas: batch.notas
+        }
+      ]);
+    }
+
+    if (auditTable === 'com_audit_logs') {
+      await client.from(auditTable).insert([
+        {
+          id: audit.id,
+          timestamp: audit.created_at,
+          action: audit.action,
+          user_id: audit.user_email,
+          details: audit.details,
+          status: 'success'
+        }
+      ]);
+    } else {
+      await client.from(auditTable).insert([
+        {
+          id: audit.id,
+          batch_id: audit.batch_id,
+          action: audit.action,
+          details: audit.details,
+          user_email: audit.user_email,
+          user_role: audit.user_role,
+          periodo_afectado: audit.periodo_afectado,
+          created_at: audit.created_at
+        }
+      ]);
+    }
   } catch (err) {
     console.warn('Supabase remote sync log error:', err);
   }
 }
+
