@@ -7,7 +7,14 @@ import {
   SupabaseHealthCheck
 } from '../services/supabaseClient';
 import { SUPABASE_SQL_SCHEMA } from '../services/sqlGenerator';
-import { seedSupabaseInitialData, clearSupabaseTables } from '../services/dbStore';
+import {
+  seedSupabaseInitialData,
+  clearSupabaseTables,
+  syncCurrentDatabaseToSupabase,
+  pullDatabaseFromSupabase,
+  saveDatabase,
+  DatabaseState
+} from '../services/dbStore';
 import {
   Database,
   CheckCircle2,
@@ -22,20 +29,28 @@ import {
   FileCode,
   BookOpen,
   UploadCloud,
-  Trash2
+  Download,
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 
 interface SupabaseConfigViewProps {
+  dbState?: DatabaseState;
+  onUpdateDbState?: (newState: DatabaseState) => void;
   onConnectionStatusChange?: (connected: boolean) => void;
 }
 
 export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
+  dbState,
+  onUpdateDbState,
   onConnectionStatusChange
 }) => {
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
   const [isTesting, setIsTesting] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isSyncingCurrent, setIsSyncingCurrent] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
   const [isClearingRemote, setIsClearingRemote] = useState(false);
   const [seedResult, setSeedResult] = useState<{ success: boolean; message: string } | null>(null);
   const [health, setHealth] = useState<SupabaseHealthCheck | null>(null);
@@ -74,6 +89,36 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
     setHealth(result);
     setIsTesting(false);
     onConnectionStatusChange?.(result.connected);
+  };
+
+  const handleSyncCurrentDb = async () => {
+    if (!dbState) return;
+    setIsSyncingCurrent(true);
+    setSeedResult(null);
+    const res = await syncCurrentDatabaseToSupabase(dbState);
+    setSeedResult(res);
+    setIsSyncingCurrent(false);
+  };
+
+  const handlePullFromSupabase = async () => {
+    setIsPulling(true);
+    setSeedResult(null);
+    const res = await pullDatabaseFromSupabase();
+    if (res.success && res.data && onUpdateDbState && dbState) {
+      const newState: DatabaseState = {
+        ...dbState,
+        ventas: res.data.ventas,
+        objetivos: res.data.objetivos,
+        cobertura: res.data.cobertura
+      };
+      onUpdateDbState(newState);
+      saveDatabase(newState);
+    }
+    setSeedResult({
+      success: res.success,
+      message: res.message
+    });
+    setIsPulling(false);
   };
 
   const handleSeed = async () => {
@@ -261,16 +306,65 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
 
             {health.connected && (
               <div className="mt-4 pt-3 border-t border-[#242C37] space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="text-[11px] text-[#929EAD]">
-                    Gestión de datos en Supabase: Puede sincronizar el conjunto demo o vaciar todas las tablas para operar de cero.
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="text-[11px] text-[#929EAD]">
+                      <strong>Sincronización Cloud:</strong> Respalde en Supabase sus datos reales o cárguelos hacia el Dashboard en cualquier dispositivo.
+                    </div>
+                    {dbState && (
+                      <span className="text-[10px] text-[#C5F467] font-mono">
+                        Base Local: {dbState.ventas.length} ventas · {dbState.objetivos.length} obj · {dbState.cobertura.length} cob
+                      </span>
+                    )}
                   </div>
+
                   <div className="flex flex-wrap items-center gap-2">
+                    {/* Sync Current State to Supabase */}
+                    <button
+                      onClick={handleSyncCurrentDb}
+                      disabled={isSyncingCurrent || isPulling || isClearingRemote}
+                      className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/50 bg-[#C5F467] px-3.5 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#b8eb58] transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Sincronizar todos los registros actuales de la base local hacia Supabase PostgreSQL"
+                    >
+                      {isSyncingCurrent ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0B0D10] border-t-transparent" />
+                          Sincronizando a la Nube...
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-4 w-4" />
+                          Sincronizar Base de Datos Actual a Supabase
+                        </>
+                      )}
+                    </button>
+
+                    {/* Pull from Supabase */}
+                    <button
+                      onClick={handlePullFromSupabase}
+                      disabled={isPulling || isSyncingCurrent || isClearingRemote}
+                      className="shrink-0 inline-flex items-center gap-2 border border-[#38BDF8]/40 bg-[#38BDF8]/10 px-3 py-1.5 text-xs font-bold text-[#38BDF8] hover:bg-[#38BDF8]/20 transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Descargar todos los datos desde Supabase PostgreSQL y restaurarlos en el Dashboard local"
+                    >
+                      {isPulling ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#38BDF8] border-t-transparent" />
+                          Descargando...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-3.5 w-3.5" />
+                          Descargar Datos desde Supabase
+                        </>
+                      )}
+                    </button>
+
+                    {/* Clear remote tables */}
                     <button
                       onClick={handleClearRemote}
-                      disabled={isClearingRemote || isSeeding}
-                      className="shrink-0 inline-flex items-center gap-2 border border-[#FB7185]/40 bg-[#FB7185]/10 px-3 py-1.5 text-xs font-bold text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors disabled:opacity-50"
-                      title="Eliminar todas las filas en com_ventas, com_objetivos y com_cobertura"
+                      disabled={isClearingRemote || isSeeding || isSyncingCurrent || isPulling}
+                      className="shrink-0 inline-flex items-center gap-2 border border-[#FB7185]/40 bg-[#FB7185]/10 px-3 py-1.5 text-xs font-bold text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Eliminar todas las filas en las tablas comerciales de Supabase"
                     >
                       {isClearingRemote ? (
                         <>
@@ -280,28 +374,22 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
                       ) : (
                         <>
                           <Trash2 className="h-3.5 w-3.5" />
-                          Vaciar Tablas en Supabase
+                          Vaciar Tablas Remotas
                         </>
                       )}
                     </button>
+                  </div>
 
+                  {/* Secondary Demo Dataset Seed */}
+                  <div className="pt-2 border-t border-[#242C37]/50 flex items-center justify-between text-[11px] text-[#626D7C]">
+                    <span>¿Desea restablecer los datos de prueba originales de septiembre 2026?</span>
                     <button
                       onClick={handleSeed}
-                      disabled={isSeeding || isClearingRemote}
-                      className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/40 bg-[#C5F467]/20 px-3 py-1.5 text-xs font-bold text-[#C5F467] hover:bg-[#C5F467]/30 transition-colors disabled:opacity-50"
-                      title="Poblar las tablas con los 1.044 registros de sep_26_normalizada"
+                      disabled={isSeeding || isSyncingCurrent || isPulling}
+                      className="inline-flex items-center gap-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9] underline cursor-pointer"
                     >
-                      {isSeeding ? (
-                        <>
-                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#C5F467] border-t-transparent" />
-                          Insertando datos...
-                        </>
-                      ) : (
-                        <>
-                          <UploadCloud className="h-4 w-4" />
-                          Sincronizar Dataset Inicial (Demo)
-                        </>
-                      )}
+                      <RefreshCw className="h-3 w-3" />
+                      {isSeeding ? 'Poblando demo...' : 'Restaurar Dataset Demo en Supabase'}
                     </button>
                   </div>
                 </div>

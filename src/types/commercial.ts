@@ -167,14 +167,28 @@ export interface ValidationIssue {
   mensaje: string;
 }
 
+export interface ImportPreviewTotals {
+  objetivoToneladas: number;
+  objetivoFacturacion: number;
+  ventasToneladas: number;
+  ventasFacturacion: number;
+  coberturaPlanificada: number;
+  clientesReales: number;
+  cumplimientoTon: number | null;
+  cumplimientoFact: number | null;
+  cumplimientoCob: number | null;
+}
+
 export interface ImportPreviewSummary {
   filename: string;
   detectedSheets: string[];
   missingSheets: string[];
+  recognizedColumns: Record<string, string[]>;
   periodos: string[];
   objetivosCount: number;
   ventasCount: number;
   coberturaCount: number;
+  totals: ImportPreviewTotals;
   issues: ValidationIssue[];
   isValid: boolean;
   objetivosData: Partial<ObjetivoRecord>[];

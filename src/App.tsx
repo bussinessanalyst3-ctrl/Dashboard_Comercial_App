@@ -378,6 +378,8 @@ export default function App() {
             {/* TAB 9: SUPABASE & SQL (ADMIN ONLY) */}
             {activeTab === 'supabase' && currentUser.role === 'admin' && (
               <SupabaseConfigView
+                dbState={dbState}
+                onUpdateDbState={setDbState}
                 onConnectionStatusChange={setSupabaseConnected}
               />
             )}

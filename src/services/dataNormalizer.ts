@@ -257,22 +257,18 @@ export function formatInteger(val: number | null | undefined): string {
   return new Intl.NumberFormat('es-PY').format(Math.round(val));
 }
 
+// TARGET LISTS SPECIFIC TO OBJETIVOS CONTRACT
 export const OBJ_FACT_TARGETS = [
-  'presupuesto_facturacion',
-  'presupuestofacturacion',
-  'presupuesto_de_facturacion',
-  'presupuestodefacturacion',
-  'facturacion_presupuesto',
-  'facturacionpresupuesto',
-  'facturacion_presupuestada',
-  'facturacionpresupuestada',
   'obj_facturacion',
   'objfacturacion',
   'objetivo_facturacion',
   'objetivofacturacion',
-  'objetivo_de_facturacion',
+  'presupuesto_facturacion',
+  'presupuestofacturacion',
+  'presupuesto_de_facturacion',
+  'facturacion_presupuesto',
+  'facturacion_presupuestada',
   'facturacion_objetivo',
-  'facturacionobjetivo',
   'presupuesto_gs',
   'presupuestogs',
   'presupuesto_guaranies',
@@ -280,38 +276,27 @@ export const OBJ_FACT_TARGETS = [
   'metafacturacion',
   'cuota_facturacion',
   'cuotafacturacion',
-  'presupuesto_venta',
-  'presupuestoventa',
-  'presupuesto_ventas',
-  'monto_presupuesto',
-  'montopresupuesto',
   'obj_fact',
   'objfact',
   'presupuesto',
-  'presupuestos',
   'cuota',
-  'cuotas',
   'meta',
-  'metas',
-  'objetivo',
-  'objetivos',
   'facturacion',
   'monto'
 ];
 
 export const OBJ_TON_TARGETS = [
-  'presupuesto_toneladas',
-  'presupuestotoneladas',
   'obj_toneladas',
   'objtoneladas',
   'objetivo_toneladas',
+  'presupuesto_toneladas',
+  'presupuestotoneladas',
   'meta_toneladas',
   'cuota_toneladas',
   'toneladas_presupuesto',
   'toneladas_objetivo',
   'toneladas_presupuestadas',
   'presupuesto_ton',
-  'presupuestoton',
   'obj_ton',
   'objton',
   'toneladas',
@@ -319,6 +304,7 @@ export const OBJ_TON_TARGETS = [
   'tons'
 ];
 
+// TARGET LISTS SPECIFIC TO VENTAS REALES CONTRACT
 export const VENTAS_FACT_TARGETS = [
   'ventas_facturacion',
   'ventasfacturacion',
@@ -344,17 +330,18 @@ export const VENTAS_TON_TARGETS = [
   'ventatoneladas',
   'toneladas_ventas',
   'toneladas_reales',
+  'real_toneladas',
   'ton_ventas',
   'ventas_ton',
   'toneladas',
-  'ton'
+  'ton',
+  'tons'
 ];
 
+// TARGET LISTS SPECIFIC TO COBERTURA CONTRACT
 export const COB_PLANIFICADA_TARGETS = [
   'objetivo_cobertura',
   'objetivocobertura',
-  'cobertura',
-  'coberturas',
   'cobertura_planificada',
   'coberturaplanificada',
   'clientes_objetivo',
@@ -366,29 +353,35 @@ export const COB_PLANIFICADA_TARGETS = [
   'plan_cobertura',
   'plancobertura',
   'meta_cobertura',
-  'metacobertura'
+  'metacobertura',
+  'cobertura'
 ];
 
 export const COB_REALES_TARGETS = [
   'clientes_reales',
   'clientesreales',
-  'reales',
-  'clientes',
-  'efectivos',
-  'clientes_activos',
-  'clientesactivos',
+  'clientes_efectivos',
   'cobertura_real',
-  'coberturareal'
+  'coberturareal',
+  'clientes_atendidos',
+  'reales',
+  'efectivos',
+  'clientes_activos'
 ];
 
 /**
- * Find matching key ignoring case, accents and whitespace
+ * Strict property finder that ensures sales columns are never matched by objective patterns
+ * and vice-versa, avoiding cross-contamination between budget goals and actual sales.
  */
-export function findRowProp(row: Record<string, unknown>, targetNames: string[]): unknown {
+export function findRowPropStrict(
+  row: Record<string, unknown>,
+  targetNames: string[],
+  options?: { forbidSubstrings?: string[] }
+): unknown {
   const normTargets = targetNames.map(t => t.toLowerCase().replace(/[^a-z0-9]/g, ''));
   const rowEntries = Object.entries(row);
 
-  // Exact normalized match first
+  // 1. Exact normalized match first (highest priority)
   for (const [key, val] of rowEntries) {
     const normKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (normTargets.includes(normKey)) {
@@ -398,9 +391,13 @@ export function findRowProp(row: Record<string, unknown>, targetNames: string[])
     }
   }
 
-  // Fallback: target is contained in key or key contains target
+  // 2. Controlled substring match only if not containing forbidden substrings
+  const forbid = (options?.forbidSubstrings || []).map(f => f.toLowerCase().replace(/[^a-z0-9]/g, ''));
   for (const [key, val] of rowEntries) {
     const normKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (forbid.some(f => f.length > 0 && normKey.includes(f))) {
+      continue;
+    }
     for (const target of normTargets) {
       if (target.length >= 4 && (normKey === target || normKey.includes(target))) {
         if (val !== undefined && val !== null && String(val).trim() !== '') {
@@ -414,12 +411,76 @@ export function findRowProp(row: Record<string, unknown>, targetNames: string[])
 }
 
 /**
+ * Backward-compatible findRowProp wrapper
+ */
+export function findRowProp(row: Record<string, unknown>, targetNames: string[]): unknown {
+  return findRowPropStrict(row, targetNames);
+}
+
+/**
+ * Determines unambiguous role of an Excel sheet based on name and header signatures.
+ */
+function determineSheetRole(
+  sheetName: string,
+  firstRow?: Record<string, unknown>
+): 'objetivos' | 'ventas' | 'cobertura' | 'combined' | 'unknown' {
+  const cleanName = sheetName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  if (
+    cleanName === 'dbobjetivos' ||
+    cleanName.includes('objetiv') ||
+    cleanName.includes('presupuest') ||
+    cleanName.includes('metas') ||
+    cleanName.includes('cuotas')
+  ) {
+    return 'objetivos';
+  }
+  if (
+    cleanName === 'dbcobertura' ||
+    cleanName.includes('cobertur') ||
+    cleanName.includes('coverag') ||
+    cleanName.includes('cliente') ||
+    cleanName.includes('cartera')
+  ) {
+    return 'cobertura';
+  }
+  if (
+    cleanName === 'dbventas' ||
+    cleanName.includes('venta') ||
+    cleanName.includes('sales')
+  ) {
+    return 'ventas';
+  }
+
+  // If generic name (e.g. Sheet1, Hoja1, Data), inspect first row headers
+  if (firstRow) {
+    const hasCob = Boolean(
+      findRowPropStrict(firstRow, COB_PLANIFICADA_TARGETS, { forbidSubstrings: ['real', 'venta'] }) ||
+      findRowPropStrict(firstRow, COB_REALES_TARGETS, { forbidSubstrings: ['obj', 'plan'] })
+    );
+    const hasObj = Boolean(
+      findRowPropStrict(firstRow, ['obj_facturacion', 'objfacturacion', 'presupuesto_facturacion', 'obj_toneladas', 'presupuesto_toneladas'], { forbidSubstrings: ['venta', 'real'] })
+    );
+    const hasVen = Boolean(
+      findRowPropStrict(firstRow, ['ventas_facturacion', 'ventasfacturacion', 'ventas_toneladas', 'ventastoneladas'], { forbidSubstrings: ['obj', 'presupuest'] })
+    );
+
+    if (hasCob && !hasObj && !hasVen) return 'cobertura';
+    if (hasObj && hasVen) return 'combined';
+    if (hasObj && !hasVen) return 'objetivos';
+    if (hasVen && !hasObj) return 'ventas';
+  }
+
+  return 'unknown';
+}
+
+/**
  * Parse an Excel file (or CSV) containing DB_Objetivos, DB_Cobertura, DB_Ventas
- * Fully supports exact formats from images:
- * - Image 1 (Objetivos): Zona, Supervisor, Codigo_Ruta, Vendedor, Producto, Obj_Toneladas, Obj_Facturacion, Mes
- * - Image 2 (Cobertura): Zona, Supervisor, Codigo_Ruta, Vendedor, Objetivo_Cobertura, Clientes_Reales, Mes
- * - Image 3 (Ventas): Zona, Codigo_Ruta, Supervisor, Producto, Ventas_Toneladas, Ventas_Facturacion, Mes
- * Auto-enriches missing Vendedor in Ventas via Route-to-Vendor directory.
+ * Fully adheres to the official Data Contract (Plantilla_Comercial_Objetivos_Cobertura_Ventas.xlsx):
+ * - DB_Objetivos: Zona, Supervisor, Codigo_Ruta, Vendedor, Producto, Obj_Toneladas, Obj_Facturacion, Mes
+ * - DB_Cobertura: Zona, Supervisor, Codigo_Ruta, Vendedor, Objetivo_Cobertura, Clientes_Reales, Mes
+ * - DB_Ventas: Zona, Codigo_Ruta, Supervisor, Producto, Ventas_Toneladas, Ventas_Facturacion, Mes
+ * Auto-enriches missing Vendedor in Ventas via Route-to-Vendor directory without row duplication.
  */
 export async function parseExcelOrCsvFile(
   file: File,
@@ -432,6 +493,7 @@ export async function parseExcelOrCsvFile(
   const sheetNames = workbook.SheetNames;
   const detectedSheets: string[] = [];
   const missingSheets: string[] = [];
+  const recognizedColumns: Record<string, string[]> = {};
 
   const objetivosData: Partial<ObjetivoRecord>[] = [];
   const ventasData: Partial<VentaRecord>[] = [];
@@ -477,14 +539,12 @@ export async function parseExcelOrCsvFile(
     });
   }
 
-  // 2. Inspect every sheet in the workbook
+  // 2. Inspect and classify every sheet with mutual exclusion
   interface SheetAnalysis {
     sheetName: string;
     sheet: XLSX.WorkSheet;
     rawRows: Record<string, unknown>[];
-    isObjetivos: boolean;
-    isCobertura: boolean;
-    isVentas: boolean;
+    role: 'objetivos' | 'ventas' | 'cobertura' | 'combined' | 'unknown';
   }
 
   const sheetAnalyses: SheetAnalysis[] = [];
@@ -497,70 +557,70 @@ export async function parseExcelOrCsvFile(
     if (!rawRows || rawRows.length === 0) continue;
 
     const firstRow = rawRows[0];
-    const cleanSheetName = sheetName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    // Check specific columns
-    const hasObjFactCol = Boolean(findRowProp(firstRow, OBJ_FACT_TARGETS));
-    const hasObjTonCol = Boolean(findRowProp(firstRow, OBJ_TON_TARGETS));
-    const hasCobCol = Boolean(findRowProp(firstRow, COB_PLANIFICADA_TARGETS) || findRowProp(firstRow, COB_REALES_TARGETS));
-    const hasVentasFactCol = Boolean(findRowProp(firstRow, VENTAS_FACT_TARGETS));
-    const hasVentasTonCol = Boolean(findRowProp(firstRow, VENTAS_TON_TARGETS));
-
-    const isNamedObjetivos = cleanSheetName.includes('objetiv') || cleanSheetName.includes('presupuest') || cleanSheetName.includes('meta') || cleanSheetName.includes('cuota') || cleanSheetName.includes('goal');
-    const isNamedCobertura = cleanSheetName.includes('cobertur') || cleanSheetName.includes('coverag') || cleanSheetName.includes('cliente') || cleanSheetName.includes('cartera');
-    const isNamedVentas = cleanSheetName.includes('venta') || cleanSheetName.includes('sales') || cleanSheetName.includes('factur');
-
-    let isObj = false;
-    let isCob = false;
-    let isVen = false;
-
-    if (hasCobCol || isNamedCobertura) {
-      isCob = true;
-    }
-
-    if (hasObjFactCol || hasObjTonCol || (isNamedObjetivos && !hasVentasFactCol)) {
-      isObj = true;
-    }
-
-    if (hasVentasFactCol || hasVentasTonCol || (isNamedVentas && !hasObjFactCol)) {
-      isVen = true;
-    }
-
-    // Default fallback for single-sheet files if no flags matched
-    if (!isObj && !isCob && !isVen) {
-      if (hasObjFactCol || hasObjTonCol) {
-        isObj = true;
-      } else if (hasCobCol) {
-        isCob = true;
-      } else {
-        isVen = true;
-      }
-    }
+    const role = determineSheetRole(sheetName, firstRow);
 
     sheetAnalyses.push({
       sheetName,
       sheet,
       rawRows,
-      isObjetivos: isObj,
-      isCobertura: isCob,
-      isVentas: isVen
+      role
     });
   }
 
-  // 3. STEP A: Process OBJETIVOS Sheets First (populates routeDirectory)
+  // 3. STEP A: Process DB_Objetivos Sheets first (populates routeDirectory)
   for (const analysis of sheetAnalyses) {
-    if (analysis.isObjetivos) {
+    if (analysis.role === 'objetivos' || analysis.role === 'combined') {
       detectedSheets.push(analysis.sheetName);
+      const colsRecognized: string[] = [];
+      const firstRow = analysis.rawRows[0] || {};
+
+      // Identify & validate columns
+      const hasZona = Boolean(findRowPropStrict(firstRow, ['zona', 'region', 'sucursal']));
+      const hasSupervisor = Boolean(findRowPropStrict(firstRow, ['supervisor', 'superv']));
+      const hasRuta = Boolean(findRowPropStrict(firstRow, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+      const hasVendedor = Boolean(findRowPropStrict(firstRow, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+      const hasProducto = Boolean(findRowPropStrict(firstRow, ['producto', 'articulo', 'descripcion']));
+      const hasTon = Boolean(findRowPropStrict(firstRow, OBJ_TON_TARGETS, { forbidSubstrings: ['venta', 'real'] }));
+      const hasFact = Boolean(findRowPropStrict(firstRow, OBJ_FACT_TARGETS, { forbidSubstrings: ['venta', 'real'] }));
+      const hasMes = Boolean(findRowPropStrict(firstRow, ['mes', 'periodo', 'fecha']));
+
+      if (hasZona) colsRecognized.push('Zona');
+      if (hasSupervisor) colsRecognized.push('Supervisor');
+      if (hasRuta) colsRecognized.push('Codigo_Ruta');
+      if (hasVendedor) colsRecognized.push('Vendedor');
+      if (hasProducto) colsRecognized.push('Producto');
+      if (hasTon) colsRecognized.push('Obj_Toneladas');
+      if (hasFact) colsRecognized.push('Obj_Facturacion');
+      if (hasMes) colsRecognized.push('Mes');
+      recognizedColumns[analysis.sheetName] = colsRecognized;
+
+      if (!hasTon) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Obj_Toneladas',
+          mensaje: 'No se detectó columna de Toneladas Objetivo (ej. Obj_Toneladas o Presupuesto_Toneladas).'
+        });
+      }
+      if (!hasFact) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Obj_Facturacion',
+          mensaje: 'No se detectó columna de Facturación Objetivo (ej. Obj_Facturacion o Presupuesto_Facturacion).'
+        });
+      }
+
       analysis.rawRows.forEach((row, idx) => {
         const rowNum = idx + 2;
-        const zona = cleanText(findRowProp(row, ['zona', 'region', 'sucursal']));
-        const supervisor = cleanText(findRowProp(row, ['supervisor', 'superv']));
-        const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
-        const vendedor = cleanText(findRowProp(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
-        const producto = cleanText(findRowProp(row, ['producto', 'articulo', 'descripcion']));
-        const tonRaw = findRowProp(row, OBJ_TON_TARGETS);
-        const factRaw = findRowProp(row, OBJ_FACT_TARGETS);
-        const mesRaw = findRowProp(row, ['mes', 'periodo', 'fecha']);
+        const zona = cleanText(findRowPropStrict(row, ['zona', 'region', 'sucursal']));
+        const supervisor = cleanText(findRowPropStrict(row, ['supervisor', 'superv']));
+        const ruta = cleanText(findRowPropStrict(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+        const vendedor = cleanText(findRowPropStrict(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+        const producto = cleanText(findRowPropStrict(row, ['producto', 'articulo', 'descripcion']));
+        const tonRaw = findRowPropStrict(row, OBJ_TON_TARGETS, { forbidSubstrings: ['venta', 'real'] });
+        const factRaw = findRowPropStrict(row, OBJ_FACT_TARGETS, { forbidSubstrings: ['venta', 'real'] });
+        const mesRaw = findRowPropStrict(row, ['mes', 'periodo', 'fecha']);
 
         if (!zona && !ruta && !producto) return;
 
@@ -590,18 +650,55 @@ export async function parseExcelOrCsvFile(
     }
   }
 
-  // 4. STEP B: Process COBERTURA Sheets (enriches routeDirectory)
+  // 4. STEP B: Process DB_Cobertura Sheets (enriches routeDirectory)
   for (const analysis of sheetAnalyses) {
-    if (analysis.isCobertura) {
+    if (analysis.role === 'cobertura') {
       detectedSheets.push(analysis.sheetName);
+      const colsRecognized: string[] = [];
+      const firstRow = analysis.rawRows[0] || {};
+
+      const hasZona = Boolean(findRowPropStrict(firstRow, ['zona', 'region', 'sucursal']));
+      const hasSupervisor = Boolean(findRowPropStrict(firstRow, ['supervisor', 'superv']));
+      const hasRuta = Boolean(findRowPropStrict(firstRow, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+      const hasVendedor = Boolean(findRowPropStrict(firstRow, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+      const hasCob = Boolean(findRowPropStrict(firstRow, COB_PLANIFICADA_TARGETS, { forbidSubstrings: ['real', 'venta'] }));
+      const hasReales = Boolean(findRowPropStrict(firstRow, COB_REALES_TARGETS, { forbidSubstrings: ['obj', 'plan'] }));
+      const hasMes = Boolean(findRowPropStrict(firstRow, ['mes', 'periodo', 'fecha']));
+
+      if (hasZona) colsRecognized.push('Zona');
+      if (hasSupervisor) colsRecognized.push('Supervisor');
+      if (hasRuta) colsRecognized.push('Codigo_Ruta');
+      if (hasVendedor) colsRecognized.push('Vendedor');
+      if (hasCob) colsRecognized.push('Objetivo_Cobertura');
+      if (hasReales) colsRecognized.push('Clientes_Reales');
+      if (hasMes) colsRecognized.push('Mes');
+      recognizedColumns[analysis.sheetName] = colsRecognized;
+
+      if (!hasCob) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Objetivo_Cobertura',
+          mensaje: 'No se detectó columna de Objetivo de Cobertura (ej. Objetivo_Cobertura).'
+        });
+      }
+      if (!hasReales) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Clientes_Reales',
+          mensaje: 'No se detectó columna de Clientes Reales (ej. Clientes_Reales).'
+        });
+      }
+
       analysis.rawRows.forEach((row) => {
-        const zona = cleanText(findRowProp(row, ['zona', 'region', 'sucursal']));
-        const supervisor = cleanText(findRowProp(row, ['supervisor', 'superv']));
-        const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
-        const vendedor = cleanText(findRowProp(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
-        const cobRaw = findRowProp(row, COB_PLANIFICADA_TARGETS);
-        const realesRaw = findRowProp(row, COB_REALES_TARGETS);
-        const mesRaw = findRowProp(row, ['mes', 'periodo', 'fecha']);
+        const zona = cleanText(findRowPropStrict(row, ['zona', 'region', 'sucursal']));
+        const supervisor = cleanText(findRowPropStrict(row, ['supervisor', 'superv']));
+        const ruta = cleanText(findRowPropStrict(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+        const vendedor = cleanText(findRowPropStrict(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+        const cobRaw = findRowPropStrict(row, COB_PLANIFICADA_TARGETS, { forbidSubstrings: ['real', 'venta'] });
+        const realesRaw = findRowPropStrict(row, COB_REALES_TARGETS, { forbidSubstrings: ['obj', 'plan'] });
+        const mesRaw = findRowPropStrict(row, ['mes', 'periodo', 'fecha']);
 
         if (!ruta && !vendedor) return;
 
@@ -632,24 +729,63 @@ export async function parseExcelOrCsvFile(
     }
   }
 
-  // 5. STEP C: Process VENTAS Sheets (with automatic vendor enrichment from routeDirectory)
+  // 5. STEP C: Process DB_Ventas Sheets (sales results exclusively; auto-enriches vendor from route)
   for (const analysis of sheetAnalyses) {
-    if (analysis.isVentas) {
+    if (analysis.role === 'ventas' || analysis.role === 'combined') {
       detectedSheets.push(analysis.sheetName);
+      const colsRecognized: string[] = [];
+      const firstRow = analysis.rawRows[0] || {};
+
+      const hasZona = Boolean(findRowPropStrict(firstRow, ['zona', 'region', 'sucursal']));
+      const hasRuta = Boolean(findRowPropStrict(firstRow, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+      const hasSupervisor = Boolean(findRowPropStrict(firstRow, ['supervisor', 'superv']));
+      const hasProducto = Boolean(findRowPropStrict(firstRow, ['producto', 'articulo', 'descripcion']));
+      const hasTon = Boolean(findRowPropStrict(firstRow, VENTAS_TON_TARGETS, { forbidSubstrings: ['obj', 'presupuest', 'meta'] }));
+      const hasFact = Boolean(findRowPropStrict(firstRow, VENTAS_FACT_TARGETS, { forbidSubstrings: ['obj', 'presupuest', 'meta'] }));
+      const hasMes = Boolean(findRowPropStrict(firstRow, ['mes', 'periodo', 'fecha']));
+      const hasVendedor = Boolean(findRowPropStrict(firstRow, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+
+      if (hasZona) colsRecognized.push('Zona');
+      if (hasRuta) colsRecognized.push('Codigo_Ruta');
+      if (hasSupervisor) colsRecognized.push('Supervisor');
+      if (hasVendedor) colsRecognized.push('Vendedor');
+      if (hasProducto) colsRecognized.push('Producto');
+      if (hasTon) colsRecognized.push('Ventas_Toneladas');
+      if (hasFact) colsRecognized.push('Ventas_Facturacion');
+      if (hasMes) colsRecognized.push('Mes');
+      recognizedColumns[analysis.sheetName] = colsRecognized;
+
+      if (!hasTon) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Ventas_Toneladas',
+          mensaje: 'No se detectó columna de Ventas Toneladas (ej. Ventas_Toneladas).'
+        });
+      }
+      if (!hasFact) {
+        issues.push({
+          type: 'warning',
+          hoja: analysis.sheetName,
+          columna: 'Ventas_Facturacion',
+          mensaje: 'No se detectó columna de Ventas Facturación (ej. Ventas_Facturacion).'
+        });
+      }
+
       analysis.rawRows.forEach((row, idx) => {
         const rowNum = idx + 2;
-        let zona = cleanText(findRowProp(row, ['zona', 'region', 'sucursal']));
-        let supervisor = cleanText(findRowProp(row, ['supervisor', 'superv']));
-        const ruta = cleanText(findRowProp(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
-        let vendedor = cleanText(findRowProp(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
-        const producto = cleanText(findRowProp(row, ['producto', 'articulo', 'descripcion']));
-        const tonRaw = findRowProp(row, VENTAS_TON_TARGETS);
-        const factRaw = findRowProp(row, VENTAS_FACT_TARGETS);
-        const mesRaw = findRowProp(row, ['mes', 'periodo', 'fecha']);
+        let zona = cleanText(findRowPropStrict(row, ['zona', 'region', 'sucursal']));
+        let supervisor = cleanText(findRowPropStrict(row, ['supervisor', 'superv']));
+        const ruta = cleanText(findRowPropStrict(row, ['codigo_ruta', 'codigoruta', 'ruta', 'cod_ruta']));
+        let vendedor = cleanText(findRowPropStrict(row, ['vendedor', 'nombre_vendedor', 'ejecutivo']));
+        const producto = cleanText(findRowPropStrict(row, ['producto', 'articulo', 'descripcion']));
+        const tonRaw = findRowPropStrict(row, VENTAS_TON_TARGETS, { forbidSubstrings: ['obj', 'presupuest', 'meta'] });
+        const factRaw = findRowPropStrict(row, VENTAS_FACT_TARGETS, { forbidSubstrings: ['obj', 'presupuest', 'meta'] });
+        const mesRaw = findRowPropStrict(row, ['mes', 'periodo', 'fecha']);
 
         if (!zona && !ruta && !producto) return;
 
-        // Auto-enrich missing Vendedor from Route Directory (as in Image 3 where Vendedor column is omitted)
+        // In DB_Ventas, Vendedor is not in template: enrich from 1:1 route in directory without fabricating
         if ((!vendedor || vendedor === 'SIN VENDEDOR') && ruta) {
           const matched = routeDirectory.get(ruta);
           if (matched && matched.vendedor) {
@@ -706,44 +842,15 @@ export async function parseExcelOrCsvFile(
           ventas_facturacion: fact,
           periodo_mes: mesNorm
         });
-
-        // COMBINED TABLE CHECK: If row has specific objective/budget columns too
-        const objFactRaw = findRowProp(row, [
-          'obj_facturacion',
-          'objfacturacion',
-          'presupuesto_facturacion',
-          'presupuestofacturacion',
-          'obj_fact',
-          'presupuesto'
-        ]);
-        const objTonRaw = findRowProp(row, [
-          'obj_toneladas',
-          'objtoneladas',
-          'presupuesto_toneladas'
-        ]);
-
-        if ((objFactRaw !== undefined || objTonRaw !== undefined) && !analysis.isObjetivos) {
-          objetivosData.push({
-            zona: zona || 'SIN ZONA',
-            supervisor: supervisor || 'SIN SUPERVISOR',
-            codigo_ruta: ruta || 'SIN-RUTA',
-            vendedor: vendedor || 'SIN VENDEDOR',
-            producto: producto || 'SIN PRODUCTO',
-            toneladas: cleanNumber(objTonRaw),
-            facturacion: cleanNumber(objFactRaw),
-            periodo_mes: mesNorm
-          });
-        }
       });
     }
   }
 
-  // Missing sheets tracking
+  // Missing sheets tracking according to contract
   if (ventasData.length === 0) missingSheets.push('DB_Ventas');
   if (objetivosData.length === 0) missingSheets.push('DB_Objetivos');
   if (coberturaData.length === 0) missingSheets.push('DB_Cobertura');
 
-  // Fallback warnings
   if (sheetNames.length === 1 && objetivosData.length === 0) {
     issues.push({
       type: 'warning',
@@ -763,14 +870,36 @@ export async function parseExcelOrCsvFile(
 
   const isValid = ventasData.length > 0 || objetivosData.length > 0 || coberturaData.length > 0;
 
+  // Compute segregated totals for preview validation
+  const totObjTon = objetivosData.reduce((acc, o) => acc + (o.toneladas || 0), 0);
+  const totObjFact = objetivosData.reduce((acc, o) => acc + (o.facturacion || 0), 0);
+  const totVenTon = ventasData.reduce((acc, v) => acc + (v.ventas_toneladas || 0), 0);
+  const totVenFact = ventasData.reduce((acc, v) => acc + (v.ventas_facturacion || 0), 0);
+  const totCobPlan = coberturaData.reduce((acc, c) => acc + (c.cobertura_planificada || 0), 0);
+  const totCliReal = coberturaData.reduce((acc, c) => acc + (c.clientes_reales || 0), 0);
+
+  const totals = {
+    objetivoToneladas: totObjTon,
+    objetivoFacturacion: totObjFact,
+    ventasToneladas: totVenTon,
+    ventasFacturacion: totVenFact,
+    coberturaPlanificada: totCobPlan,
+    clientesReales: totCliReal,
+    cumplimientoTon: totObjTon > 0 ? (totVenTon / totObjTon) * 100 : null,
+    cumplimientoFact: totObjFact > 0 ? (totVenFact / totObjFact) * 100 : null,
+    cumplimientoCob: totCobPlan > 0 ? (totCliReal / totCobPlan) * 100 : null
+  };
+
   return {
     filename: file.name,
     detectedSheets: Array.from(new Set(detectedSheets)),
     missingSheets,
+    recognizedColumns,
     periodos,
     objetivosCount: objetivosData.length,
     ventasCount: ventasData.length,
     coberturaCount: coberturaData.length,
+    totals,
     issues,
     isValid,
     objetivosData,

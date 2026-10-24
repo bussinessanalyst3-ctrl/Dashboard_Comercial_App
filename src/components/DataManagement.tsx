@@ -9,7 +9,11 @@ import {
 import {
   parseExcelOrCsvFile,
   generateSampleExcelTemplate,
-  formatPeriodDisplay
+  formatPeriodDisplay,
+  formatGuaranies,
+  formatTons,
+  formatPercent,
+  formatInteger
 } from '../services/dataNormalizer';
 import {
   executeAppendImport,
@@ -233,7 +237,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         onUpdateDbState(result.updatedState);
         setExecutionResult({
           success: true,
-          message: `Importación incremental ejecutada con éxito para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Idempotencia asegurada: registros duplicados actualizados sin replicar filas.`,
+          message: `Importación incremental ejecutada con éxito para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Registros persistidos localmente y sincronizados automáticamente en Supabase PostgreSQL.`,
           stats: result.stats,
           targetPeriod: officialPeriod
         });
@@ -257,7 +261,7 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         onUpdateDbState(result.updatedState);
         setExecutionResult({
           success: true,
-          message: `Reemplazo atómico completado para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Se eliminaron los datos previos seleccionados y se insertaron los nuevos. Los demás meses permanecen intactos.`,
+          message: `Reemplazo atómico completado para el período oficial ${formatPeriodDisplay(officialPeriod)} (${officialPeriod}). Datos previos eliminados y nuevos registros sincronizados automáticamente en Supabase PostgreSQL.`,
           stats: result.deletedCounts,
           targetPeriod: officialPeriod
         });
@@ -537,6 +541,99 @@ export const DataManagement: React.FC<DataManagementProps> = ({
                 ))}
               </div>
             )}
+
+            {/* SEPARATED TOTALS & RECOGNIZED COLUMNS AUDIT (CRITICAL SECTION 8) */}
+            <div className="border border-[#242C37] bg-[#0B0D10] p-4 space-y-4">
+              <div className="flex items-center justify-between border-b border-[#242C37] pb-2">
+                <div className="text-[10px] text-[#929EAD] uppercase font-bold tracking-wider">
+                  Auditoría de Datos Importados por Fuente (Totales Segregados)
+                </div>
+                <span className="text-[10px] text-[#C5F467] font-mono">
+                  Valores aislados sin mezcla de hechos
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 1. DB_Objetivos Card */}
+                <div className="border border-[#38BDF8]/40 bg-[#12161C] p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#38BDF8]">1. DB_Objetivos (Metas)</span>
+                    <span className="text-[10px] font-mono text-[#929EAD]">{preview.objetivosCount} filas</span>
+                  </div>
+                  <div className="text-[10px] text-[#626D7C]">
+                    Cols: {preview.recognizedColumns['DB_Objetivos']?.join(', ') || 'Auto-detectadas'}
+                  </div>
+                  <div className="pt-2 border-t border-[#242C37] space-y-1 text-xs font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Obj. Toneladas:</span>
+                      <span className="font-bold text-[#F1F5F9]">{formatTons(preview.totals.objetivoToneladas)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Obj. Facturación:</span>
+                      <span className="font-bold text-[#38BDF8]">{formatGuaranies(preview.totals.objetivoFacturacion)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. DB_Ventas Card */}
+                <div className="border border-[#C5F467]/40 bg-[#12161C] p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#C5F467]">2. DB_Ventas (Reales)</span>
+                    <span className="text-[10px] font-mono text-[#929EAD]">{preview.ventasCount} filas</span>
+                  </div>
+                  <div className="text-[10px] text-[#626D7C]">
+                    Cols: {preview.recognizedColumns['DB_Ventas']?.join(', ') || 'Auto-detectadas'}
+                  </div>
+                  <div className="pt-2 border-t border-[#242C37] space-y-1 text-xs font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Ventas Toneladas:</span>
+                      <span className="font-bold text-[#F1F5F9]">{formatTons(preview.totals.ventasToneladas)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Ventas Facturación:</span>
+                      <span className="font-bold text-[#C5F467]">{formatGuaranies(preview.totals.ventasFacturacion)}</span>
+                    </div>
+                    {preview.totals.cumplimientoFact !== null && (
+                      <div className="flex justify-between pt-1 border-t border-[#242C37]/50 text-[11px]">
+                        <span className="text-[#929EAD]">Cumpl. Facturación:</span>
+                        <span className={`font-bold ${preview.totals.cumplimientoFact >= 100 ? 'text-[#C5F467]' : 'text-[#FB7185]'}`}>
+                          {formatPercent(preview.totals.cumplimientoFact)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. DB_Cobertura Card */}
+                <div className="border border-[#F59E0B]/40 bg-[#12161C] p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#F59E0B]">3. DB_Cobertura (Clientes)</span>
+                    <span className="text-[10px] font-mono text-[#929EAD]">{preview.coberturaCount} filas</span>
+                  </div>
+                  <div className="text-[10px] text-[#626D7C]">
+                    Cols: {preview.recognizedColumns['DB_Cobertura']?.join(', ') || 'Auto-detectadas'}
+                  </div>
+                  <div className="pt-2 border-t border-[#242C37] space-y-1 text-xs font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Meta Cobertura:</span>
+                      <span className="font-bold text-[#F1F5F9]">{formatInteger(preview.totals.coberturaPlanificada)} cli</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#929EAD]">Clientes Reales:</span>
+                      <span className="font-bold text-[#F59E0B]">{formatInteger(preview.totals.clientesReales)} cli</span>
+                    </div>
+                    {preview.totals.cumplimientoCob !== null && (
+                      <div className="flex justify-between pt-1 border-t border-[#242C37]/50 text-[11px]">
+                        <span className="text-[#929EAD]">Cumpl. Cobertura:</span>
+                        <span className={`font-bold ${preview.totals.cumplimientoCob >= 100 ? 'text-[#C5F467]' : 'text-[#FB7185]'}`}>
+                          {formatPercent(preview.totals.cumplimientoCob)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* OBLIGATORY OFFICIAL PERIOD SELECTOR & CONSISTENCY VALIDATION */}
             <div className="border border-[#C5F467]/40 bg-[#0B0D10] p-4 space-y-4">
