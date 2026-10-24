@@ -218,4 +218,13 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ==============================================================================
+-- 11. VISTAS DE COMPATIBILIDAD (COM_* Y COMERCIAL_*)
+-- ==============================================================================
+CREATE OR REPLACE VIEW public.com_ventas AS SELECT * FROM public.comercial_ventas;
+CREATE OR REPLACE VIEW public.com_objetivos AS SELECT * FROM public.comercial_objetivos;
+CREATE OR REPLACE VIEW public.com_cobertura AS SELECT * FROM public.comercial_cobertura;
+CREATE OR REPLACE VIEW public.com_import_batches AS SELECT * FROM public.import_batches;
+CREATE OR REPLACE VIEW public.com_audit_logs AS SELECT * FROM public.import_audit_logs;
 `;

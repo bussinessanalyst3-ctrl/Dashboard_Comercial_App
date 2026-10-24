@@ -286,20 +286,56 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
                 <div>
                   comercial_ventas:{' '}
                   <strong className={health.tablesFound.ventas ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
-                    {health.tablesFound.ventas ? '✓ Detectada' : '✗ No existe'}
+                    {health.tablesFound.ventas ? '✓ Detectada' : '✗ No existe en Supabase'}
                   </strong>
                 </div>
                 <div>
                   comercial_objetivos:{' '}
                   <strong className={health.tablesFound.objetivos ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
-                    {health.tablesFound.objetivos ? '✓ Detectada' : '✗ No existe'}
+                    {health.tablesFound.objetivos ? '✓ Detectada' : '✗ No existe en Supabase'}
                   </strong>
                 </div>
                 <div>
                   comercial_cobertura:{' '}
                   <strong className={health.tablesFound.cobertura ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
-                    {health.tablesFound.cobertura ? '✓ Detectada' : '✗ No existe'}
+                    {health.tablesFound.cobertura ? '✓ Detectada' : '✗ No existe en Supabase'}
                   </strong>
+                </div>
+              </div>
+            )}
+
+            {/* ACTION BANNER IF TABLES ARE MISSING */}
+            {health.connected && (!health.tablesFound?.ventas || !health.tablesFound?.objetivos) && (
+              <div className="mt-4 border border-[#F59E0B]/50 bg-[#F59E0B]/10 p-3.5 text-xs text-[#F59E0B] space-y-2">
+                <div className="flex items-center gap-2 font-bold text-sm">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>Paso Requerido: Crear las Tablas en Supabase</span>
+                </div>
+                <p className="font-sans text-slate-200 text-xs leading-relaxed">
+                  La conexión a Supabase es válida, pero la base de datos PostgreSQL aún no tiene creadas las tablas comerciales (<strong>comercial_ventas</strong>, <strong>comercial_objetivos</strong>, etc.).
+                </p>
+                <div className="font-sans text-slate-300 text-[11px] space-y-1 bg-[#0B0D10] p-2.5 border border-[#242C37]">
+                  <p><strong>Pasos para solucionar en 1 minuto:</strong></p>
+                  <p>1. Haga clic en el botón verde abajo para <strong>Copiar el Script SQL</strong>.</p>
+                  <p>2. Vaya a su proyecto en <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="text-[#38BDF8] underline font-bold">Supabase Dashboard</a> → menú izquierdo <strong>SQL Editor</strong> → <strong>New Query</strong>.</p>
+                  <p>3. Pegue el script y haga clic en <strong>Run</strong>.</p>
+                  <p>4. Regrese aquí y haga clic en <strong>"Guardar y Probar Conexión"</strong>.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    onClick={copySqlToClipboard}
+                    className="inline-flex items-center gap-1.5 border border-[#C5F467]/60 bg-[#C5F467] px-3.5 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#b8eb58] transition-colors cursor-pointer"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {copiedSql ? '✓ ¡Script SQL Copiado al Portapapeles!' : 'Copiar Script SQL Completo'}
+                  </button>
+                  <button
+                    onClick={() => handleTest()}
+                    className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#12161C] px-3 py-1.5 text-xs font-semibold text-[#F1F5F9] hover:border-[#C5F467] transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 text-[#C5F467]" />
+                    Re-verificar Tablas
+                  </button>
                 </div>
               </div>
             )}
@@ -322,9 +358,13 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
                     {/* Sync Current State to Supabase */}
                     <button
                       onClick={handleSyncCurrentDb}
-                      disabled={isSyncingCurrent || isPulling || isClearingRemote}
-                      className="shrink-0 inline-flex items-center gap-2 border border-[#C5F467]/50 bg-[#C5F467] px-3.5 py-1.5 text-xs font-bold text-[#0B0D10] hover:bg-[#b8eb58] transition-colors disabled:opacity-50 cursor-pointer"
-                      title="Sincronizar todos los registros actuales de la base local hacia Supabase PostgreSQL"
+                      disabled={isSyncingCurrent || isPulling || isClearingRemote || !health.tablesFound?.ventas}
+                      className={`shrink-0 inline-flex items-center gap-2 border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                        !health.tablesFound?.ventas
+                          ? 'border-[#242C37] bg-[#191F27] text-[#626D7C] cursor-not-allowed'
+                          : 'border-[#C5F467]/50 bg-[#C5F467] text-[#0B0D10] hover:bg-[#b8eb58] cursor-pointer'
+                      }`}
+                      title={!health.tablesFound?.ventas ? 'Primero debe crear las tablas ejecutando el script SQL en Supabase' : 'Sincronizar todos los registros actuales hacia Supabase PostgreSQL'}
                     >
                       {isSyncingCurrent ? (
                         <>
@@ -342,9 +382,13 @@ export const SupabaseConfigView: React.FC<SupabaseConfigViewProps> = ({
                     {/* Pull from Supabase */}
                     <button
                       onClick={handlePullFromSupabase}
-                      disabled={isPulling || isSyncingCurrent || isClearingRemote}
-                      className="shrink-0 inline-flex items-center gap-2 border border-[#38BDF8]/40 bg-[#38BDF8]/10 px-3 py-1.5 text-xs font-bold text-[#38BDF8] hover:bg-[#38BDF8]/20 transition-colors disabled:opacity-50 cursor-pointer"
-                      title="Descargar todos los datos desde Supabase PostgreSQL y restaurarlos en el Dashboard local"
+                      disabled={isPulling || isSyncingCurrent || isClearingRemote || !health.tablesFound?.ventas}
+                      className={`shrink-0 inline-flex items-center gap-2 border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                        !health.tablesFound?.ventas
+                          ? 'border-[#242C37] bg-[#191F27] text-[#626D7C] cursor-not-allowed'
+                          : 'border-[#38BDF8]/40 bg-[#38BDF8]/10 text-[#38BDF8] hover:bg-[#38BDF8]/20 cursor-pointer'
+                      }`}
+                      title={!health.tablesFound?.ventas ? 'Primero debe crear las tablas en Supabase' : 'Descargar datos desde Supabase PostgreSQL y restaurarlos en el Dashboard local'}
                     >
                       {isPulling ? (
                         <>

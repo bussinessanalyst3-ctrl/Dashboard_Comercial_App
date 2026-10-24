@@ -14,7 +14,7 @@ import {
   INITIAL_BATCHES,
   INITIAL_AUDIT_LOGS
 } from './initialData';
-import { LOCAL_USERS, getSupabaseClient } from './supabaseClient';
+import { LOCAL_USERS, getSupabaseClient, checkTableExists } from './supabaseClient';
 
 const DB_INITIALIZED_KEY = 'db_comercial_initialized_v2';
 const DB_VENTAS_KEY = 'db_comercial_ventas_v2';
@@ -729,37 +729,20 @@ export function switchUserRole(currentState: DatabaseState, role: UserRole): Dat
  * Discovers and resolves exact table names in the active Supabase project
  */
 export async function resolveCommercialTables(client: NonNullable<ReturnType<typeof getSupabaseClient>>) {
-  let ventasTable = 'comercial_ventas';
-  const checkV = await client.from('comercial_ventas').select('id').limit(1);
-  if (checkV.error && checkV.error.code === '42P01') {
-    ventasTable = 'com_ventas';
-  }
+  const vFound = await checkTableExists(client, ['comercial_ventas', 'com_ventas', 'ventas']);
+  const oFound = await checkTableExists(client, ['comercial_objetivos', 'com_objetivos', 'objetivos']);
+  const cFound = await checkTableExists(client, ['comercial_cobertura', 'com_cobertura', 'cobertura']);
+  const bFound = await checkTableExists(client, ['import_batches', 'com_import_batches', 'batches']);
+  const aFound = await checkTableExists(client, ['import_audit_logs', 'com_audit_logs', 'audit_logs']);
 
-  let objetivosTable = 'comercial_objetivos';
-  const checkO = await client.from('comercial_objetivos').select('id').limit(1);
-  if (checkO.error && checkO.error.code === '42P01') {
-    objetivosTable = 'com_objetivos';
-  }
-
-  let coberturaTable = 'comercial_cobertura';
-  const checkC = await client.from('comercial_cobertura').select('id').limit(1);
-  if (checkC.error && checkC.error.code === '42P01') {
-    coberturaTable = 'com_cobertura';
-  }
-
-  let batchTable = 'import_batches';
-  const checkB = await client.from('import_batches').select('id').limit(1);
-  if (checkB.error && checkB.error.code === '42P01') {
-    batchTable = 'com_import_batches';
-  }
-
-  let auditTable = 'import_audit_logs';
-  const checkA = await client.from('import_audit_logs').select('id').limit(1);
-  if (checkA.error && checkA.error.code === '42P01') {
-    auditTable = 'com_audit_logs';
-  }
-
-  return { ventasTable, objetivosTable, coberturaTable, batchTable, auditTable };
+  return {
+    hasTables: Boolean(vFound && oFound),
+    ventasTable: vFound || 'comercial_ventas',
+    objetivosTable: oFound || 'comercial_objetivos',
+    coberturaTable: cFound || 'comercial_cobertura',
+    batchTable: bFound || 'import_batches',
+    auditTable: aFound || 'import_audit_logs'
+  };
 }
 
 /**
@@ -782,7 +765,14 @@ export async function syncImportedRecordsToSupabase(
   }
 
   try {
-    const { ventasTable, objetivosTable, coberturaTable, batchTable, auditTable } = await resolveCommercialTables(client);
+    const { hasTables, ventasTable, objetivosTable, coberturaTable, batchTable, auditTable } = await resolveCommercialTables(client);
+
+    if (!hasTables) {
+      return {
+        success: false,
+        message: 'Aviso: Los datos fueron procesados localmente. Las tablas aún no están creadas en Supabase. Ejecute el script SQL provisto en la sección Conexión Supabase.'
+      };
+    }
 
     const vCol = ventasTable === 'com_ventas' ? 'mes' : 'periodo_mes';
     const oCol = objetivosTable === 'com_objetivos' ? 'mes' : 'periodo_mes';
@@ -790,20 +780,20 @@ export async function syncImportedRecordsToSupabase(
 
     // 1. Clean prior rows for this period in target tables to avoid duplicate key conflicts
     if (mode === 'replace') {
-      if ((!fuentesToReplace || fuentesToReplace.includes('ventas')) && ventas.length > 0) {
+      if (ventasTable && (!fuentesToReplace || fuentesToReplace.includes('ventas')) && ventas.length > 0) {
         await client.from(ventasTable).delete().eq(vCol, targetPeriod);
       }
-      if ((!fuentesToReplace || fuentesToReplace.includes('objetivos')) && objetivos.length > 0) {
+      if (objetivosTable && (!fuentesToReplace || fuentesToReplace.includes('objetivos')) && objetivos.length > 0) {
         await client.from(objetivosTable).delete().eq(oCol, targetPeriod);
       }
-      if ((!fuentesToReplace || fuentesToReplace.includes('cobertura')) && cobertura.length > 0) {
+      if (coberturaTable && (!fuentesToReplace || fuentesToReplace.includes('cobertura')) && cobertura.length > 0) {
         await client.from(coberturaTable).delete().eq(cCol, targetPeriod);
       }
     } else {
       // Append mode: clean this period's previous records in cloud so the updated consolidated dataset matches 1:1
-      if (ventas.length > 0) await client.from(ventasTable).delete().eq(vCol, targetPeriod);
-      if (objetivos.length > 0) await client.from(objetivosTable).delete().eq(oCol, targetPeriod);
-      if (cobertura.length > 0) await client.from(coberturaTable).delete().eq(cCol, targetPeriod);
+      if (ventasTable && ventas.length > 0) await client.from(ventasTable).delete().eq(vCol, targetPeriod);
+      if (objetivosTable && objetivos.length > 0) await client.from(objetivosTable).delete().eq(oCol, targetPeriod);
+      if (coberturaTable && cobertura.length > 0) await client.from(coberturaTable).delete().eq(cCol, targetPeriod);
     }
 
     // 2. Insert Ventas in chunks of 200 (omitting client ID to let PostgreSQL generate valid UUIDs)
@@ -952,7 +942,14 @@ export async function syncCurrentDatabaseToSupabase(currentState: DatabaseState)
   }
 
   try {
-    const { ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+    const { hasTables, ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+
+    if (!hasTables) {
+      return {
+        success: false,
+        message: "No se encontraron las tablas comerciales creadas en su proyecto de Supabase (ni 'comercial_ventas' ni 'com_ventas'). Ingrese a la sección 'Conexión Supabase' en el menú, copie el script SQL y ejecútelo en el 'SQL Editor' de Supabase para crearlas en 1 minuto."
+      };
+    }
 
     const vCol = ventasTable === 'com_ventas' ? 'mes' : 'periodo_mes';
     const oCol = objetivosTable === 'com_objetivos' ? 'mes' : 'periodo_mes';
@@ -960,9 +957,9 @@ export async function syncCurrentDatabaseToSupabase(currentState: DatabaseState)
 
     // 1. Clear remote tables first to mirror the current database
     try {
-      await client.from(ventasTable).delete().not('id', 'is', null);
-      await client.from(objetivosTable).delete().not('id', 'is', null);
-      await client.from(coberturaTable).delete().not('id', 'is', null);
+      if (ventasTable) await client.from(ventasTable).delete().not('id', 'is', null);
+      if (objetivosTable) await client.from(objetivosTable).delete().not('id', 'is', null);
+      if (coberturaTable) await client.from(coberturaTable).delete().not('id', 'is', null);
     } catch (delErr) {
       console.warn('Notice clearing remote tables:', delErr);
     }
@@ -1054,7 +1051,14 @@ export async function pullDatabaseFromSupabase(): Promise<{
   }
 
   try {
-    const { ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+    const { hasTables, ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+
+    if (!hasTables) {
+      return {
+        success: false,
+        message: 'No se encontraron las tablas comerciales en Supabase para descargar. Ejecute primero el script SQL en Supabase.'
+      };
+    }
 
     const { data: vData, error: vErr } = await client.from(ventasTable).select('*').range(0, 9999);
     if (vErr) throw new Error(`Error descargando ventas: ${vErr.message}`);
@@ -1062,8 +1066,7 @@ export async function pullDatabaseFromSupabase(): Promise<{
     const { data: oData, error: oErr } = await client.from(objetivosTable).select('*').range(0, 9999);
     if (oErr) throw new Error(`Error descargando objetivos: ${oErr.message}`);
 
-    const { data: cData, error: cErr } = await client.from(coberturaTable).select('*').range(0, 9999);
-    if (cErr) throw new Error(`Error descargando cobertura: ${cErr.message}`);
+    const cData = (await client.from(coberturaTable).select('*').range(0, 9999)).data || [];
 
     const ventas: VentaRecord[] = (vData || []).map((row: any, idx: number) => ({
       id: row.id || `v_pull_${idx}`,
@@ -1134,7 +1137,14 @@ export async function seedSupabaseInitialData(): Promise<{
   }
 
   try {
-    const { ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+    const { hasTables, ventasTable, objetivosTable, coberturaTable } = await resolveCommercialTables(client);
+
+    if (!hasTables) {
+      return {
+        success: false,
+        message: 'No se encontraron las tablas comerciales creadas en Supabase. Ejecute el script SQL en el SQL Editor de Supabase antes de poblar los datos demo.'
+      };
+    }
 
     const vCol = ventasTable === 'com_ventas' ? 'mes' : 'periodo_mes';
     const oCol = objetivosTable === 'com_objetivos' ? 'mes' : 'periodo_mes';

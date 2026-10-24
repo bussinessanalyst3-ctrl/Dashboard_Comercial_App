@@ -89,6 +89,42 @@ export interface SupabaseHealthCheck {
   };
 }
 
+export function isTableMissingError(error: any): boolean {
+  if (!error) return false;
+  const code = String(error.code || '').toUpperCase();
+  const msg = String(error.message || '').toLowerCase();
+  return (
+    code === '42P01' ||
+    code.startsWith('PGRST20') ||
+    code === 'PGRST116' ||
+    msg.includes('could not find the table') ||
+    msg.includes('schema cache') ||
+    msg.includes('relation') ||
+    msg.includes('does not exist')
+  );
+}
+
+export function isTablePresent(res: { data: any; error: any }): boolean {
+  if (!res.error) return true;
+  if (isTableMissingError(res.error)) return false;
+  // If error is permission or RLS (e.g. 42501 or permission denied), the table exists in PostgreSQL
+  return true;
+}
+
+export async function checkTableExists(client: SupabaseClient, candidateNames: string[]): Promise<string | null> {
+  for (const name of candidateNames) {
+    try {
+      const res = await client.from(name).select('id').limit(1);
+      if (isTablePresent(res)) {
+        return name;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 export async function testSupabaseConnection(): Promise<SupabaseHealthCheck> {
   const client = getSupabaseClient();
   if (!client) {
@@ -99,61 +135,20 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthCheck> {
   }
 
   try {
-    // Attempt to query with flexible table name detection (com_* or comercial_*)
-    let vFound = false;
-    const v1 = await client.from('comercial_ventas').select('id').limit(1);
-    if (!v1.error || v1.error.code !== '42P01') {
-      vFound = true;
-    } else {
-      const v2 = await client.from('com_ventas').select('id').limit(1);
-      if (!v2.error || v2.error.code !== '42P01') vFound = true;
-    }
-
-    let oFound = false;
-    const o1 = await client.from('comercial_objetivos').select('id').limit(1);
-    if (!o1.error || o1.error.code !== '42P01') {
-      oFound = true;
-    } else {
-      const o2 = await client.from('com_objetivos').select('id').limit(1);
-      if (!o2.error || o2.error.code !== '42P01') oFound = true;
-    }
-
-    let cFound = false;
-    const c1 = await client.from('comercial_cobertura').select('id').limit(1);
-    if (!c1.error || c1.error.code !== '42P01') {
-      cFound = true;
-    } else {
-      const c2 = await client.from('com_cobertura').select('id').limit(1);
-      if (!c2.error || c2.error.code !== '42P01') cFound = true;
-    }
-
-    let bFound = false;
-    const b1 = await client.from('import_batches').select('id').limit(1);
-    if (!b1.error || b1.error.code !== '42P01') {
-      bFound = true;
-    } else {
-      const b2 = await client.from('com_import_batches').select('id').limit(1);
-      if (!b2.error || b2.error.code !== '42P01') bFound = true;
-    }
-
-    let aFound = false;
-    const a1 = await client.from('import_audit_logs').select('id').limit(1);
-    if (!a1.error || a1.error.code !== '42P01') {
-      aFound = true;
-    } else {
-      const a2 = await client.from('com_audit_logs').select('id').limit(1);
-      if (!a2.error || a2.error.code !== '42P01') aFound = true;
-    }
-
-    const { error: pErr } = await client.from('user_profiles').select('id').limit(1);
+    const vTable = await checkTableExists(client, ['comercial_ventas', 'com_ventas', 'ventas']);
+    const oTable = await checkTableExists(client, ['comercial_objetivos', 'com_objetivos', 'objetivos']);
+    const cTable = await checkTableExists(client, ['comercial_cobertura', 'com_cobertura', 'cobertura']);
+    const bTable = await checkTableExists(client, ['import_batches', 'com_import_batches', 'batches']);
+    const aTable = await checkTableExists(client, ['import_audit_logs', 'com_audit_logs', 'audit_logs']);
+    const pTable = await checkTableExists(client, ['user_profiles', 'profiles']);
 
     const tablesFound = {
-      ventas: vFound,
-      objetivos: oFound,
-      cobertura: cFound,
-      batches: bFound,
-      auditLogs: aFound,
-      profiles: !pErr || pErr.code !== '42P01'
+      ventas: vTable !== null,
+      objetivos: oTable !== null,
+      cobertura: cTable !== null,
+      batches: bTable !== null,
+      auditLogs: aTable !== null,
+      profiles: pTable !== null
     };
 
     const hasTables = tablesFound.ventas && tablesFound.objetivos;
@@ -161,8 +156,8 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthCheck> {
     return {
       connected: true,
       message: hasTables
-        ? 'Conexión exitosa a Supabase PostgreSQL y tablas comerciales detectadas.'
-        : 'Conexión a Supabase exitosa, pero las tablas comerciales aún no han sido creadas. Ejecute el script SQL.',
+        ? `Conexión exitosa a Supabase PostgreSQL. Tablas activas: ${vTable}, ${oTable}, ${cTable || 'cobertura'}.`
+        : 'Conexión a Supabase exitosa, pero las tablas comerciales aún no han sido creadas en PostgreSQL. Copie y ejecute el script SQL.',
       tablesFound
     };
   } catch (err: unknown) {
