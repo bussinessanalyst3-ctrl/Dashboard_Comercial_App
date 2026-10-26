@@ -46,75 +46,75 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
   const getRankBadge = (index: number) => {
     if (index === 0) {
       return (
-        <span className="flex h-5 w-5 items-center justify-center font-mono font-bold text-xs bg-[#C5F467] text-[#0B0D10]">
+        <span className="flex h-5 w-5 rounded-full items-center justify-center font-mono font-bold text-[11px] bg-[#F59E0B] text-slate-950 shadow-xs">
           1
         </span>
       );
     }
     if (index === 1) {
       return (
-        <span className="flex h-5 w-5 items-center justify-center font-mono font-bold text-xs bg-[#38BDF8] text-[#0B0D10]">
+        <span className="flex h-5 w-5 rounded-full items-center justify-center font-mono font-bold text-[11px] bg-[#94A3B8] text-slate-950 shadow-xs">
           2
         </span>
       );
     }
     if (index === 2) {
       return (
-        <span className="flex h-5 w-5 items-center justify-center font-mono font-bold text-xs bg-[#F59E0B] text-[#0B0D10]">
+        <span className="flex h-5 w-5 rounded-full items-center justify-center font-mono font-bold text-[11px] bg-[#D97706] text-slate-950 shadow-xs">
           3
         </span>
       );
     }
     return (
-      <span className="flex h-5 w-5 items-center justify-center font-mono text-xs text-[#626D7C]">
+      <span className="flex h-5 w-5 rounded-full items-center justify-center font-mono text-[11px] text-[#6B7280] bg-[#111827] border border-[#374151]">
         {index + 1}
       </span>
     );
   };
 
   return (
-    <div className="space-y-6 font-mono text-xs">
+    <div className="space-y-6 text-xs">
       {/* Header with Switcher */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-4">
           <div>
-            <div className="flex items-center gap-2 text-[10px] text-[#626D7C] uppercase tracking-wider">
-              <span>CUADRO DE HONOR Y EFICIENCIA</span>
+            <div className="flex items-center gap-2 text-xs font-medium text-[#9CA3AF]">
+              <span>Desempeño y Efectividad</span>
               <span>/</span>
-              <span className="text-[#C5F467] font-bold">LÍDERES COMERCIALES</span>
+              <span className="text-[#3B82F6] font-semibold">Líderes Comerciales</span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+            <h2 className="mt-1 text-base font-bold text-[#F9FAFB]">
               Rankings de Rendimiento & Cobertura Efectiva
             </h2>
           </div>
 
-          <div className="flex items-center gap-1 p-1 bg-[#0B0D10] border border-[#242C37] rounded-sm">
+          <div className="flex items-center gap-1 p-1 bg-[#111827] border border-[#374151] rounded-md">
             <button
               onClick={() => setMetricTab('facturacion')}
-              className={`px-3 py-1 text-xs transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                 metricTab === 'facturacion'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               Facturación
             </button>
             <button
               onClick={() => setMetricTab('toneladas')}
-              className={`px-3 py-1 text-xs transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                 metricTab === 'toneladas'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               Toneladas
             </button>
             <button
               onClick={() => setMetricTab('cobertura')}
-              className={`px-3 py-1 text-xs transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                 metricTab === 'cobertura'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               Cobertura
@@ -126,15 +126,15 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
       {/* Main Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* LEADERBOARD 1: VENDEDORES */}
-        <div className="border border-[#242C37] bg-[#12161C] p-5">
-          <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+        <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+          <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-[#C5F467]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+              <Users className="h-4 w-4 text-[#3B82F6]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
                 Ranking de Vendedores ({metricTab.toUpperCase()})
               </h3>
             </div>
-            <span className="text-xs text-[#626D7C]">{sortedVendors.length} vendedores</span>
+            <span className="text-xs text-[#9CA3AF]">{sortedVendors.length} vendedores</span>
           </div>
 
           <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
@@ -152,36 +152,36 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
                 <div
                   key={vendor.clave}
                   onClick={() => onSelectVendor?.(vendor.nombre)}
-                  className="border border-[#242C37] bg-[#0B0D10] p-2.5 hover:bg-[#191F27] cursor-pointer transition-colors"
+                  className="rounded-md border border-[#374151] bg-[#111827] p-3 hover:bg-[#243042] cursor-pointer transition-colors"
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {getRankBadge(idx)}
                       <div className="truncate">
-                        <div className="text-xs font-bold text-[#F1F5F9] truncate">
+                        <div className="text-xs font-semibold text-[#F9FAFB] truncate">
                           {vendor.nombre}
                         </div>
-                        <div className="text-[10px] text-[#929EAD] font-sans truncate">
+                        <div className="text-[11px] text-[#9CA3AF] truncate">
                           {vendor.subtexto}
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-xs font-bold text-[#F1F5F9]">
+                      <div className="text-xs font-bold font-mono text-[#F9FAFB]">
                         {metricTab === 'facturacion' && formatGuaranies(vendor.realFact)}
                         {metricTab === 'toneladas' && formatTons(vendor.realTon, 2)}
                         {metricTab === 'cobertura' && formatPercent(vendor.cumplimientoCob)}
                       </div>
-                      <div className="text-[10px] text-[#C5F467]">
+                      <div className="text-[11px] font-mono text-[#14B8A6]">
                         {formatPercent(vendor.cumplimientoFact)} de meta
                       </div>
                     </div>
                   </div>
 
-                  <div className="h-1 w-full bg-[#12161C] border border-[#242C37] overflow-hidden">
+                  <div className="h-1.5 w-full bg-[#1F2937] border border-[#374151] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#C5F467] transition-all duration-300"
+                      className="h-full bg-[#14B8A6] rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
@@ -194,11 +194,11 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
         {/* LEADERBOARD 2: SUPERVISORES Y RUTAS */}
         <div className="space-y-6">
           {/* Supervisores */}
-          <div className="border border-[#242C37] bg-[#12161C] p-5">
-            <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+          <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-[#38BDF8]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+                <Award className="h-4 w-4 text-[#3B82F6]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
                   Cumplimiento por Supervisor
                 </h3>
               </div>
@@ -209,22 +209,22 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
                 <div key={sup.clave} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="text-[10px] text-[#626D7C]">{idx + 1}.</span>
-                      <span className="font-bold text-[#F1F5F9] truncate">{sup.nombre}</span>
-                      <span className="text-[10px] text-[#929EAD]">({sup.subtexto})</span>
+                      <span className="text-[10px] text-[#6B7280] font-mono">{idx + 1}.</span>
+                      <span className="font-semibold text-[#F9FAFB] truncate">{sup.nombre}</span>
+                      <span className="text-[11px] text-[#9CA3AF]">({sup.subtexto})</span>
                     </div>
-                    <span className="font-bold text-[#C5F467]">
+                    <span className="font-bold font-mono text-[#14B8A6]">
                       {formatPercent(sup.cumplimientoFact)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#929EAD]">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[#9CA3AF]">
                     <span>Real: {formatGuaranies(sup.realFact, true)}</span>
                     <span>Meta: {formatGuaranies(sup.objetivoFact, true)}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-[#0B0D10] border border-[#242C37] overflow-hidden">
+                  <div className="h-1.5 w-full bg-[#111827] border border-[#374151] rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${
-                        (sup.cumplimientoFact || 0) >= 100 ? 'bg-[#C5F467]' : 'bg-[#F59E0B]'
+                      className={`h-full rounded-full ${
+                        (sup.cumplimientoFact || 0) >= 100 ? 'bg-[#14B8A6]' : 'bg-[#F59E0B]'
                       }`}
                       style={{ width: `${Math.min(sup.cumplimientoFact || 0, 100)}%` }}
                     />
@@ -235,11 +235,11 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
           </div>
 
           {/* Rutas con Mejor Cobertura */}
-          <div className="border border-[#242C37] bg-[#12161C] p-5">
-            <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+          <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-[#C5F467]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+                <Truck className="h-4 w-4 text-[#14B8A6]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
                   Líderes de Penetración Efectiva (Rutas)
                 </h3>
               </div>
@@ -250,20 +250,20 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
                 <div
                   key={r.clave}
                   onClick={() => onSelectRoute?.(r.clave)}
-                  className="flex items-center justify-between text-xs p-2.5 border border-[#242C37] bg-[#0B0D10] hover:bg-[#191F27] cursor-pointer transition-colors"
+                  className="flex items-center justify-between text-xs p-3 rounded-md border border-[#374151] bg-[#111827] hover:bg-[#243042] cursor-pointer transition-colors"
                 >
                   <div className="truncate">
-                    <div className="font-bold text-[#F1F5F9] flex items-center gap-1.5">
-                      <Medal className="h-3.5 w-3.5 text-[#C5F467]" />
+                    <div className="font-semibold text-[#F9FAFB] flex items-center gap-1.5">
+                      <Medal className="h-3.5 w-3.5 text-[#14B8A6]" />
                       {r.clave}
                     </div>
-                    <div className="text-[10px] text-[#929EAD] font-sans truncate">{r.subtexto}</div>
+                    <div className="text-[11px] text-[#9CA3AF] truncate">{r.subtexto}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-[#F1F5F9]">
+                    <div className="font-bold font-mono text-[#F9FAFB]">
                       {r.clientesReal} / {r.coberturaObj} cli
                     </div>
-                    <div className="text-[10px] text-[#C5F467] font-bold">
+                    <div className="text-[11px] font-mono text-[#14B8A6] font-semibold">
                       {formatPercent(r.cumplimientoCob)}
                     </div>
                   </div>

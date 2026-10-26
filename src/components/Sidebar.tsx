@@ -151,39 +151,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex w-64 flex-col border-r border-[#242C37] bg-[#0B0D10] text-[#F1F5F9] transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex w-64 flex-col border-r border-[#374151] bg-[#111827] text-[#F9FAFB] transition-transform duration-200 lg:static lg:translate-x-0 ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Editorial Brand Header */}
-        <div className="flex h-16 items-center justify-between border-b border-[#242C37] px-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center border border-[#C5F467]/40 bg-[#12161C] text-[#C5F467]">
-              <Activity className="h-4 w-4" />
+        {/* Brand Header */}
+        <div className="flex h-16 items-center justify-between border-b border-[#374151] px-4 bg-[#111827]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] text-white shadow-xs">
+              <Activity className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-mono text-xs font-extrabold tracking-wider text-[#F1F5F9] uppercase">
-                ANALYTICS STUDIO
+              <div className="text-sm font-bold tracking-tight text-[#F9FAFB]">
+                Analytics Studio
               </div>
-              <div className="text-[10px] font-mono text-[#626D7C]">
+              <div className="text-[11px] text-[#9CA3AF] font-medium">
                 Commercial Intelligence
               </div>
             </div>
           </div>
           <button
             onClick={onCloseMobile}
-            className="p-1 text-[#929EAD] hover:text-[#F1F5F9] lg:hidden"
+            className="p-1 text-[#9CA3AF] hover:text-[#F9FAFB] lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation items */}
-        <div className="flex-1 overflow-y-auto px-2 py-4">
-          <div className="px-2 pb-2 text-[10px] font-mono font-bold tracking-widest text-[#626D7C] uppercase">
-            MÓDULOS ANALÍTICOS
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          <div className="px-2 pb-2.5 text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">
+            Módulos Analíticos
           </div>
-          <nav className="space-y-0.5">
+          <nav className="space-y-1">
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -194,31 +194,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     setActiveTab(item.id);
                     onCloseMobile();
                   }}
-                  className={`group flex w-full items-center justify-between px-2.5 py-2 text-left font-mono text-xs transition-colors ${
+                  className={`group flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-xs font-medium transition-colors ${
                     isActive
-                      ? 'border-l-2 border-[#C5F467] bg-[#12161C] text-[#C5F467] font-bold'
-                      : 'border-l-2 border-transparent text-[#929EAD] hover:bg-[#12161C]/60 hover:text-[#F1F5F9]'
+                      ? 'border-l-3 border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] font-semibold'
+                      : 'border-l-3 border-transparent text-[#9CA3AF] hover:bg-[#1F2937] hover:text-[#F9FAFB]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Icon
                       className={`h-4 w-4 shrink-0 ${
-                        isActive ? 'text-[#C5F467]' : 'text-[#626D7C] group-hover:text-[#929EAD]'
+                        isActive ? 'text-[#3B82F6]' : 'text-[#6B7280] group-hover:text-[#9CA3AF]'
                       }`}
                     />
                     <div className="truncate">
                       <div className="truncate leading-tight">{item.label}</div>
-                      <div className="truncate text-[10px] text-[#626D7C] font-sans">
+                      <div className="truncate text-[11px] text-[#6B7280] font-normal">
                         {item.sub}
                       </div>
                     </div>
                   </div>
                   {item.badge && (
                     <span
-                      className={`text-[9px] px-1 py-0.2 font-mono uppercase tracking-wider ${
+                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider ${
                         isActive
-                          ? 'border border-[#C5F467]/30 bg-[#C5F467]/10 text-[#C5F467]'
-                          : 'border border-[#242C37] bg-[#0B0D10] text-[#626D7C]'
+                          ? 'border border-[#3B82F6]/30 bg-[#3B82F6]/20 text-[#3B82F6]'
+                          : 'border border-[#374151] bg-[#1F2937] text-[#9CA3AF]'
                       }`}
                     >
                       {item.badge}
@@ -230,15 +230,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
 
           {/* Quick Engine Status */}
-          <div className="mt-8 border border-[#242C37] bg-[#12161C] p-3 text-[11px] font-mono">
-            <div className="flex items-center justify-between text-[#929EAD]">
-              <span className="uppercase text-[10px] text-[#626D7C]">PERSISTENCIA</span>
-              <span className="flex items-center gap-1.5 text-[#C5F467]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#C5F467] animate-pulse" />
+          <div className="mt-8 rounded-lg border border-[#374151] bg-[#1F2937] p-3 text-xs">
+            <div className="flex items-center justify-between text-[#9CA3AF]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">Persistencia</span>
+              <span className="flex items-center gap-1.5 font-medium text-[#14B8A6]">
+                <span className="h-2 w-2 rounded-full bg-[#14B8A6] animate-pulse" />
                 {supabaseConnected ? 'Supabase Sync' : 'Indexed Local'}
               </span>
             </div>
-            <p className="mt-1.5 text-[10px] text-[#626D7C] leading-relaxed font-sans">
+            <p className="mt-1.5 text-[11px] text-[#9CA3AF] leading-relaxed">
               {supabaseConnected
                 ? 'Conectado a Supabase PostgreSQL con RLS en producción.'
                 : 'Almacenamiento persistente local activo. Esquema SQL listo para vincular.'}
@@ -247,27 +247,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer: User Role and Theme Switcher */}
-        <div className="border-t border-[#242C37] p-3 bg-[#0B0D10]">
-          <div className="border border-[#242C37] bg-[#12161C] p-2.5">
+        <div className="border-t border-[#374151] p-3 bg-[#111827]">
+          <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-2.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center text-xs font-bold ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold ${
                     userRole === 'admin'
-                      ? 'border border-[#C5F467]/40 bg-[#C5F467]/10 text-[#C5F467]'
-                      : 'border border-[#38BDF8]/40 bg-[#38BDF8]/10 text-[#38BDF8]'
+                      ? 'border border-[#3B82F6]/40 bg-[#3B82F6]/10 text-[#3B82F6]'
+                      : 'border border-[#14B8A6]/40 bg-[#14B8A6]/10 text-[#14B8A6]'
                   }`}
                 >
-                  {userRole === 'admin' ? <Shield className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {userRole === 'admin' ? <Shield className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </div>
-                <div className="min-w-0 truncate font-mono">
-                  <div className="text-[11px] font-bold text-[#F1F5F9] truncate">
+                <div className="min-w-0 truncate">
+                  <div className="text-xs font-semibold text-[#F9FAFB] truncate">
                     {currentUser.full_name || currentUser.email}
                   </div>
-                  <div className={`text-[9px] font-bold uppercase tracking-wider ${
-                    userRole === 'admin' ? 'text-[#C5F467]' : 'text-[#38BDF8]'
+                  <div className={`text-[10px] font-medium uppercase tracking-wider ${
+                    userRole === 'admin' ? 'text-[#3B82F6]' : 'text-[#14B8A6]'
                   }`}>
-                    {userRole === 'admin' ? 'ADMINISTRADOR' : 'EQUIPO COMERCIAL'}
+                    {userRole === 'admin' ? 'Administrador' : 'Equipo Comercial'}
                   </div>
                 </div>
               </div>
@@ -275,18 +275,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Theme Toggle Button */}
               <button
                 onClick={onToggleTheme}
-                className="p-1 border border-[#242C37] text-[#929EAD] hover:text-[#F1F5F9] transition-colors"
+                className="p-1.5 rounded-md border border-[#374151] text-[#9CA3AF] hover:text-[#F9FAFB] hover:bg-[#374151]/50 transition-colors"
                 title={`Cambiar a tema ${theme === 'dark' ? 'claro' : 'oscuro'}`}
               >
                 {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               </button>
             </div>
 
-            <div className="mt-2 pt-2 border-t border-[#242C37] flex items-center justify-between text-[10px] font-mono">
-              <span className="text-[#626D7C] truncate max-w-[130px]">{currentUser.email}</span>
+            <div className="mt-2.5 pt-2 border-t border-[#374151] flex items-center justify-between text-[11px]">
+              <span className="text-[#6B7280] truncate max-w-[130px] font-mono">{currentUser.email}</span>
               <button
                 onClick={onLogout}
-                className="inline-flex items-center gap-1 text-[#FB7185] hover:text-[#f43f5e] font-bold transition-colors"
+                className="inline-flex items-center gap-1 text-[#EF4444] hover:text-red-400 font-medium transition-colors"
                 title="Cerrar sesión"
               >
                 <LogOut className="h-3 w-3" />

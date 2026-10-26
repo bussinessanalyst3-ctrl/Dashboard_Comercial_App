@@ -126,34 +126,34 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         {/* ROW 1: EVOLUCIÓN TEMPORAL MULTIMENSUAL + ANÁLISIS DE VARIANZA POR ZONA */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Main Time-Series Area Chart (7 cols) */}
-          <div className="lg:col-span-7 border border-[#242C37] bg-[#12161C] p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#242C37] pb-3 mb-4">
+          <div className="lg:col-span-7 rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#374151] pb-3 mb-4">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
                   Evolución Multimensual: Presupuesto vs Real
                 </h3>
-                <p className="text-[11px] font-mono text-[#929EAD]">
+                <p className="text-[11px] text-[#9CA3AF]">
                   Serie histórica de desempeño consolidado por período
                 </p>
               </div>
 
-              <div className="flex items-center rounded-sm border border-[#29313B] bg-[#0B0D10] p-0.5 text-xs font-mono">
+              <div className="flex items-center rounded-md border border-[#374151] bg-[#111827] p-1 text-xs">
                 <button
                   onClick={() => setTemporalMetric('facturacion')}
-                  className={`px-2.5 py-0.5 transition-colors ${
+                  className={`px-3 py-1 rounded-sm font-medium transition-colors ${
                     temporalMetric === 'facturacion'
-                      ? 'bg-[#191F27] text-[#C5F467] font-bold'
-                      : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                      ? 'bg-[#3B82F6] text-white'
+                      : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
                   }`}
                 >
                   Facturación (M)
                 </button>
                 <button
                   onClick={() => setTemporalMetric('toneladas')}
-                  className={`px-2.5 py-0.5 transition-colors ${
+                  className={`px-3 py-1 rounded-sm font-medium transition-colors ${
                     temporalMetric === 'toneladas'
-                      ? 'bg-[#191F27] text-[#C5F467] font-bold'
-                      : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                      ? 'bg-[#3B82F6] text-white'
+                      : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
                   }`}
                 >
                   Toneladas
@@ -175,21 +175,21 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 >
                   <defs>
                     <linearGradient id="realGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C5F467" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#C5F467" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="objGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#38BDF8" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#38BDF8" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 2" stroke="#1F2732" vertical={false} />
+                  <CartesianGrid strokeDasharray="2 2" stroke="#374151" vertical={false} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 10, fill: '#929EAD', fontFamily: 'JetBrains Mono' }}
+                    tick={{ fontSize: 10, fill: '#9CA3AF', fontFamily: 'Plus Jakarta Sans' }}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+                    tick={{ fontSize: 10, fill: '#6B7280', fontFamily: 'JetBrains Mono' }}
                     tickFormatter={v => (temporalMetric === 'facturacion' ? `₲${v}M` : `${v}T`)}
                   />
                   <Tooltip
@@ -200,10 +200,10 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                       name === 'Real' ? 'Venta Real' : 'Objetivo Presupuestado'
                     ]}
                     contentStyle={{
-                      backgroundColor: '#0B0D10',
-                      border: '1px solid #242C37',
-                      borderRadius: '2px',
-                      color: '#F1F5F9',
+                      backgroundColor: '#111827',
+                      border: '1px solid #374151',
+                      borderRadius: '6px',
+                      color: '#F9FAFB',
                       fontSize: '11px',
                       fontFamily: 'JetBrains Mono'
                     }}
@@ -211,7 +211,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <Area
                     type="monotone"
                     dataKey="Objetivo"
-                    stroke="#38BDF8"
+                    stroke="#3B82F6"
                     strokeWidth={1.5}
                     strokeDasharray="4 4"
                     fill="url(#objGradient)"
@@ -219,7 +219,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <Area
                     type="monotone"
                     dataKey="Real"
-                    stroke="#C5F467"
+                    stroke="#14B8A6"
                     strokeWidth={2.5}
                     fill="url(#realGradient)"
                   />
@@ -227,12 +227,16 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </ResponsiveContainer>
             </div>
 
-            <div className="mt-2 flex items-center justify-between text-[11px] font-mono text-[#929EAD]">
-              <span className="flex items-center gap-2">
-                <span className="h-0.5 w-4 bg-[#C5F467]" /> Venta Real
-                <span className="h-0.5 w-4 bg-[#38BDF8] border-dashed border-b" /> Presupuesto
+            <div className="mt-2 flex items-center justify-between text-xs text-[#9CA3AF]">
+              <span className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-4 rounded-xs bg-[#14B8A6]" /> Venta Real
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-0.5 w-4 bg-[#3B82F6] border-dashed border-b" /> Presupuesto
+                </span>
               </span>
-              <span className="text-[#626D7C]">Haga clic en un punto para explorar</span>
+              <span className="text-[11px] text-[#6B7280]">Evolución acumulada mensual</span>
             </div>
           </div>
 
@@ -258,22 +262,22 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </div>
 
           {/* Supervisor Efficiency Summary (5 cols) */}
-          <div className="lg:col-span-5 border border-[#242C37] bg-[#12161C] p-5">
-            <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+          <div className="lg:col-span-5 rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
                   Desempeño por Supervisión
                 </h3>
-                <p className="text-[11px] font-mono text-[#929EAD]">
+                <p className="text-[11px] text-[#9CA3AF]">
                   Cumplimiento de metas por equipo comercial
                 </p>
               </div>
-              <span className="text-xs font-mono text-[#C5F467]">
+              <span className="text-xs font-mono font-semibold text-[#3B82F6] rounded-md px-2 py-0.5 bg-[#3B82F6]/10 border border-[#3B82F6]/20">
                 {supervisorAggs.length} supervisores
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {supervisorAggs.map((sup, idx) => {
                 const cFact = sup.cumplimientoFact || 0;
                 const isOver = cFact >= 100;
@@ -283,35 +287,35 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <div
                     key={sup.clave}
                     onClick={() => onSelectSupervisor(sup.clave)}
-                    className="p-2.5 border border-[#242C37] bg-[#0B0D10]/50 hover:bg-[#191F27] cursor-pointer transition-colors"
+                    className="p-3 rounded-md border border-[#374151] bg-[#111827]/70 hover:bg-[#243042] cursor-pointer transition-colors"
                   >
-                    <div className="flex items-center justify-between text-xs font-mono mb-1">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
                       <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-[10px] text-[#626D7C]">{idx + 1}.</span>
-                        <span className="font-bold text-[#F1F5F9] truncate">{sup.nombre}</span>
+                        <span className="text-[10px] text-[#6B7280] font-mono">{idx + 1}.</span>
+                        <span className="font-semibold text-[#F9FAFB] truncate">{sup.nombre}</span>
                       </div>
                       <span
-                        className={`font-bold ${
-                          isOver ? 'text-[#C5F467]' : isWarning ? 'text-[#FB7185]' : 'text-[#38BDF8]'
+                        className={`font-mono font-bold ${
+                          isOver ? 'text-[#14B8A6]' : isWarning ? 'text-[#EF4444]' : 'text-[#3B82F6]'
                         }`}
                       >
                         {formatPercent(sup.cumplimientoFact)}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono text-[#929EAD] mb-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-[#9CA3AF] mb-1.5">
                       <span>Real: {formatGuaranies(sup.realFact, true)}</span>
                       <span>Meta: {formatGuaranies(sup.objetivoFact, true)}</span>
-                      <span className={sup.deltaFact >= 0 ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                      <span className={sup.deltaFact >= 0 ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {sup.deltaFact >= 0 ? '+' : ''}{formatGuaranies(sup.deltaFact, true)}
                       </span>
                     </div>
 
                     {/* Compact progress bar */}
-                    <div className="h-1.5 w-full bg-[#12161C] border border-[#242C37] rounded-xs overflow-hidden">
+                    <div className="h-1.5 w-full bg-[#1F2937] border border-[#374151] rounded-full overflow-hidden">
                       <div
-                        className={`h-full ${
-                          isOver ? 'bg-[#C5F467]' : isWarning ? 'bg-[#FB7185]' : 'bg-[#38BDF8]'
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isOver ? 'bg-[#14B8A6]' : isWarning ? 'bg-[#EF4444]' : 'bg-[#3B82F6]'
                         }`}
                         style={{ width: `${Math.min(cFact, 115)}%` }}
                       />

@@ -42,23 +42,23 @@ export const ParetoChart: React.FC<ParetoChartProps> = ({
   });
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#242C37] pb-3 mb-4">
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#374151] pb-3 mb-4">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
             {title}
           </h3>
-          <p className="text-[11px] font-mono text-[#929EAD]">
+          <p className="text-[11px] text-[#9CA3AF]">
             Concentración acumulada de facturación por línea de producto
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-[#929EAD]">
-          <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 bg-[#38BDF8]" /> Facturación (M)
+        <div className="flex items-center gap-3 text-xs font-medium text-[#9CA3AF]">
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-xs bg-[#3B82F6]" /> Facturación (M)
           </span>
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-4 bg-[#C5F467]" /> Acumulado %
+          <span className="flex items-center gap-1.5">
+            <span className="h-1 w-4 rounded-full bg-[#14B8A6]" /> Acumulado %
           </span>
         </div>
       </div>
@@ -69,25 +69,25 @@ export const ParetoChart: React.FC<ParetoChartProps> = ({
             data={data}
             margin={{ top: 10, right: 25, left: -10, bottom: 25 }}
           >
-            <CartesianGrid strokeDasharray="2 2" stroke="#1F2732" vertical={false} />
+            <CartesianGrid strokeDasharray="2 2" stroke="#374151" vertical={false} />
             <XAxis
               dataKey="name"
               angle={-25}
               textAnchor="end"
               interval={0}
               height={45}
-              tick={{ fontSize: 9, fill: '#929EAD', fontFamily: 'JetBrains Mono' }}
+              tick={{ fontSize: 9, fill: '#9CA3AF', fontFamily: 'Plus Jakarta Sans' }}
             />
             <YAxis
               yAxisId="left"
-              tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+              tick={{ fontSize: 10, fill: '#6B7280', fontFamily: 'JetBrains Mono' }}
               tickFormatter={v => `₲${v}M`}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               domain={[0, 100]}
-              tick={{ fontSize: 10, fill: '#C5F467', fontFamily: 'JetBrains Mono' }}
+              tick={{ fontSize: 10, fill: '#14B8A6', fontFamily: 'JetBrains Mono' }}
               tickFormatter={v => `${v}%`}
             />
             <ReferenceLine yAxisId="right" y={80} stroke="#F59E0B" strokeDasharray="3 3" label={{ value: 'Regla 80%', fill: '#F59E0B', fontSize: 10, position: 'insideTopRight' }} />
@@ -103,10 +103,10 @@ export const ParetoChart: React.FC<ParetoChartProps> = ({
                 return [`${p.cumPct}%`, 'Concentración Acumulada'];
               }}
               contentStyle={{
-                backgroundColor: '#0B0D10',
-                border: '1px solid #242C37',
-                borderRadius: '2px',
-                color: '#F1F5F9',
+                backgroundColor: '#111827',
+                border: '1px solid #374151',
+                borderRadius: '6px',
+                color: '#F9FAFB',
                 fontSize: '11px',
                 fontFamily: 'JetBrains Mono'
               }}
@@ -114,9 +114,9 @@ export const ParetoChart: React.FC<ParetoChartProps> = ({
             <Bar
               yAxisId="left"
               dataKey="facturacionM"
-              fill="#38BDF8"
-              fillOpacity={0.7}
-              radius={[2, 2, 0, 0]}
+              fill="#3B82F6"
+              fillOpacity={0.8}
+              radius={[3, 3, 0, 0]}
               onClick={(e: any) => {
                 if (e?.name) onSelectProduct?.(e.name);
               }}
@@ -126,17 +126,17 @@ export const ParetoChart: React.FC<ParetoChartProps> = ({
               yAxisId="right"
               type="monotone"
               dataKey="cumPct"
-              stroke="#C5F467"
+              stroke="#14B8A6"
               strokeWidth={2}
-              dot={{ r: 3, fill: '#C5F467' }}
+              dot={{ r: 3, fill: '#14B8A6' }}
             />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-1 text-[11px] font-mono text-[#626D7C] flex items-center justify-between">
-        <span>Las 3 primeras líneas concentran más del 75% del volumen de venta total.</span>
-        <span>Haga clic en una barra para filtrar producto</span>
+      <div className="mt-1 text-[11px] text-[#9CA3AF] flex items-center justify-between">
+        <span>Las 3 primeras líneas concentran la mayor parte de la facturación comercial.</span>
+        <span className="text-[#3B82F6] font-medium">Haga clic en una barra para filtrar</span>
       </div>
     </div>
   );

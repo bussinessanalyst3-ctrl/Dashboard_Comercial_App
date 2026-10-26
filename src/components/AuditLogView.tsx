@@ -71,17 +71,17 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
   };
 
   return (
-    <div className="space-y-4 font-mono text-xs">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-4">
           <div>
-            <div className="flex items-center gap-2 text-[10px] text-[#626D7C] uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
               <span>TRAZABILIDAD Y GOBERNANZA</span>
               <span>/</span>
-              <span className="text-[#C5F467] font-bold">BITÁCORA INMUTABLE</span>
+              <span className="text-[#3B82F6] font-bold">BITÁCORA INMUTABLE</span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+            <h2 className="mt-1 text-base font-bold text-[#F9FAFB]">
               Auditoría de Cargas, Lotes & Registro de Modificaciones
             </h2>
           </div>
@@ -89,9 +89,9 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
           <div className="flex items-center gap-2">
             <button
               onClick={exportAudit}
-              className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#0B0D10] px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-3 py-1.5 text-xs font-semibold text-[#D1D5DB] hover:text-[#F9FAFB] hover:border-[#4B5563] transition-colors cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5 text-[#626D7C]" />
+              <Download className="h-3.5 w-3.5 text-[#9CA3AF]" />
               Exportar Auditoría (.xlsx)
             </button>
           </div>
@@ -99,23 +99,23 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
 
         {/* Switcher & Search */}
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-1 p-1 bg-[#0B0D10] border border-[#242C37] rounded-sm">
+          <div className="flex items-center gap-1 p-1 bg-[#111827] border border-[#374151] rounded-lg">
             <button
               onClick={() => setActiveTab('batches')}
-              className={`px-3 py-1 text-xs transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 activeTab === 'batches'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB] hover:bg-[#1F2937]'
               }`}
             >
               Lotes de Carga ({batches.length})
             </button>
             <button
               onClick={() => setActiveTab('audit')}
-              className={`px-3 py-1 text-xs transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 activeTab === 'audit'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB] hover:bg-[#1F2937]'
               }`}
             >
               Bitácora de Acciones ({auditLogs.length})
@@ -123,25 +123,25 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
           </div>
 
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
             <input
               type="text"
               placeholder="Buscar en auditoría..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="h-8 w-60 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+              className="h-9 w-60 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-3 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:outline-hidden focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         </div>
       </div>
 
       {/* Table Content */}
-      <div className="border border-[#242C37] bg-[#12161C] overflow-hidden">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] overflow-hidden shadow-sm">
         {activeTab === 'batches' ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono border-collapse">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
+                <tr className="border-b border-[#374151] bg-[#111827] text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">
                   <th className="py-2.5 px-3">Batch ID / Archivo</th>
                   <th className="py-2.5 px-3">Modalidad</th>
                   <th className="py-2.5 px-3">Períodos</th>
@@ -152,40 +152,40 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
                   <th className="py-2.5 px-3 text-center">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#242C37]/60">
+              <tbody className="divide-y divide-[#374151]">
                 {filteredBatches.map(b => (
-                  <tr key={b.id} className="hover:bg-[#191F27]/60 text-[#F1F5F9]">
+                  <tr key={b.id} className="hover:bg-[#111827]/60 text-[#F9FAFB] transition-colors">
                     <td className="py-2.5 px-3">
-                      <div className="font-bold text-[#F1F5F9]">{b.filename}</div>
-                      <div className="text-[10px] text-[#626D7C]">{b.id}</div>
+                      <div className="font-semibold text-[#F9FAFB]">{b.filename}</div>
+                      <div className="text-[10px] text-[#9CA3AF] font-mono">{b.id}</div>
                     </td>
                     <td className="py-2.5 px-3">
                       <span
-                        className={`text-[10px] px-1.5 py-0.5 border ${
+                        className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                           b.tipo_operacion === 'append'
-                            ? 'border-[#38BDF8]/40 bg-[#38BDF8]/10 text-[#38BDF8]'
-                            : 'border-[#FB7185]/40 bg-[#FB7185]/10 text-[#FB7185]'
+                            ? 'bg-[#3B82F6]/15 text-[#38BDF8] border border-[#3B82F6]/30'
+                            : 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30'
                         }`}
                       >
                         {b.tipo_operacion.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-[#C5F467]">
+                    <td className="py-2.5 px-3 text-[#14B8A6] font-medium">
                       {b.periodos_detectados.join(', ')}
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[11px]">
-                      <div>{b.registros_ventas} ventas</div>
-                      <div className="text-[10px] text-[#626D7C]">
+                    <td className="py-2.5 px-3 text-right text-[11px] font-mono tabular-nums">
+                      <div className="font-semibold text-[#F9FAFB]">{b.registros_ventas} ventas</div>
+                      <div className="text-[10px] text-[#9CA3AF]">
                         {b.registros_objetivos} obj · {b.registros_cobertura} cob
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 text-[#929EAD]">{b.created_by}</td>
-                    <td className="py-2.5 px-3 text-[#626D7C]">{b.duration_ms} ms</td>
-                    <td className="py-2.5 px-3 text-[#929EAD] text-[11px]">
+                    <td className="py-2.5 px-3 text-[#9CA3AF]">{b.created_by}</td>
+                    <td className="py-2.5 px-3 text-[#9CA3AF] font-mono tabular-nums">{b.duration_ms} ms</td>
+                    <td className="py-2.5 px-3 text-[#9CA3AF] text-[11px] font-mono tabular-nums">
                       {new Date(b.created_at).toLocaleString('es-PY')}
                     </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#C5F467]">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#14B8A6] bg-[#14B8A6]/10 px-2 py-0.5 rounded border border-[#14B8A6]/30">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Completado
                       </span>
@@ -197,9 +197,9 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono border-collapse">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
+                <tr className="border-b border-[#374151] bg-[#111827] text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">
                   <th className="py-2.5 px-3">Fecha y Hora</th>
                   <th className="py-2.5 px-3">Acción</th>
                   <th className="py-2.5 px-3">Detalle de Operación</th>
@@ -207,27 +207,27 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ batches, auditLogs }
                   <th className="py-2.5 px-3">Rol</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#242C37]/60">
+              <tbody className="divide-y divide-[#374151]">
                 {filteredAudit.map(a => (
-                  <tr key={a.id} className="hover:bg-[#191F27]/60 text-[#F1F5F9]">
-                    <td className="py-2.5 px-3 text-[11px] text-[#626D7C] whitespace-nowrap">
+                  <tr key={a.id} className="hover:bg-[#111827]/60 text-[#F9FAFB] transition-colors">
+                    <td className="py-2.5 px-3 text-[11px] text-[#9CA3AF] whitespace-nowrap font-mono tabular-nums">
                       {new Date(a.created_at).toLocaleString('es-PY')}
                     </td>
                     <td className="py-2.5 px-3">
-                      <span className="text-[10px] border border-[#242C37] bg-[#0B0D10] px-1.5 py-0.5 text-[#C5F467]">
+                      <span className="text-[10px] rounded border border-[#374151] bg-[#111827] px-2 py-0.5 font-semibold text-[#38BDF8]">
                         {a.action}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-[#F1F5F9] text-[11px] font-sans leading-relaxed">
+                    <td className="py-2.5 px-3 text-[#D1D5DB] text-[11px] leading-relaxed">
                       {a.details}
                     </td>
-                    <td className="py-2.5 px-3 text-[#929EAD] whitespace-nowrap">{a.user_email}</td>
+                    <td className="py-2.5 px-3 text-[#9CA3AF] whitespace-nowrap">{a.user_email}</td>
                     <td className="py-2.5 px-3 uppercase text-[10px]">
                       <span
-                        className={`px-1.5 py-0.5 border ${
+                        className={`px-2 py-0.5 rounded font-semibold border ${
                           a.user_role === 'admin'
-                            ? 'border-[#C5F467]/40 text-[#C5F467]'
-                            : 'border-[#242C37] text-[#626D7C]'
+                            ? 'border-[#3B82F6]/40 bg-[#3B82F6]/10 text-[#3B82F6]'
+                            : 'border-[#374151] bg-[#111827] text-[#9CA3AF]'
                         }`}
                       >
                         {a.user_role}

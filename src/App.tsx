@@ -203,7 +203,7 @@ export default function App() {
   }
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden ${theme === 'light' ? 'theme-light bg-[#F8FAFC] text-[#0F172A]' : 'bg-[#0B0D10] text-[#F1F5F9]'}`}>
+    <div className={`flex h-screen w-screen overflow-hidden ${theme === 'light' ? 'theme-light bg-[#F8FAFC] text-[#0F172A]' : 'bg-[#111827] text-[#F9FAFB]'}`}>
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -386,15 +386,15 @@ export default function App() {
 
             {/* Access Denied Guard for Commercial Role attempting restricted routes */}
             {['import', 'users', 'audit', 'supabase'].includes(activeTab) && currentUser.role !== 'admin' && (
-              <div className="border border-red-500/30 bg-red-950/20 p-8 text-center">
-                <Shield className="mx-auto h-12 w-12 text-red-400 mb-3" />
-                <h2 className="font-mono text-lg font-bold text-red-300">ACCESO RESTRINGIDO (403)</h2>
-                <p className="mt-2 text-sm text-[#929EAD] max-w-lg mx-auto">
-                  Este módulo requiere permisos administrativos. Tu cuenta actual (<span className="text-[#F1F5F9] font-mono">{currentUser.email}</span>) tiene perfil <span className="text-[#38BDF8] font-bold">Equipo Comercial</span>, con acceso exclusivo a consulta y visualización.
+              <div className="rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-8 text-center shadow-lg">
+                <Shield className="mx-auto h-12 w-12 text-[#EF4444] mb-3" />
+                <h2 className="text-lg font-bold text-[#F9FAFB]">ACCESO RESTRINGIDO (403)</h2>
+                <p className="mt-2 text-xs text-[#9CA3AF] max-w-lg mx-auto leading-relaxed">
+                  Este módulo requiere permisos administrativos. Tu cuenta actual (<span className="text-[#F9FAFB] font-mono">{currentUser.email}</span>) tiene perfil <span className="text-[#38BDF8] font-bold">Equipo Comercial</span>, con acceso exclusivo a consulta y visualización.
                 </p>
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className="mt-5 inline-flex items-center gap-2 px-4 py-2 border border-[#C5F467] bg-[#C5F467]/10 text-xs font-mono font-bold text-[#C5F467] hover:bg-[#C5F467] hover:text-[#0B0D10] transition-colors"
+                  className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#3B82F6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2563EB] transition-colors shadow-sm cursor-pointer"
                 >
                   Volver al Dashboard
                 </button>

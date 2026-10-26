@@ -132,17 +132,17 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
   };
 
   return (
-    <div className="space-y-4 font-mono text-xs">
+    <div className="space-y-4">
       {/* Top Header & Dimension Tabs */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[#242C37]">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[#374151]">
           <div>
-            <div className="flex items-center gap-2 text-[10px] text-[#626D7C] uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
               <span>MATRICES DE CONTRAPRESTACIÓN</span>
               <span>/</span>
-              <span className="text-[#C5F467] font-bold">DESGLOSE DIMENSIONAL</span>
+              <span className="text-[#3B82F6] font-bold">DESGLOSE DIMENSIONAL</span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+            <h2 className="mt-1 text-base font-bold text-[#F9FAFB]">
               Análisis Cruzado de Objetivos, Facturación y Cobertura
             </h2>
           </div>
@@ -150,9 +150,9 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={exportCurrentTable}
-              className="inline-flex items-center gap-1.5 border border-[#242C37] bg-[#0B0D10] px-3 py-1.5 text-xs text-[#929EAD] hover:text-[#F1F5F9] hover:border-[#333D4D] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-3 py-1.5 text-xs font-semibold text-[#D1D5DB] hover:text-[#F9FAFB] hover:border-[#4B5563] transition-colors cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5 text-[#626D7C]" />
+              <Download className="h-3.5 w-3.5 text-[#9CA3AF]" />
               Exportar Matriz (.xlsx)
             </button>
           </div>
@@ -160,7 +160,7 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
 
         {/* Tab Buttons & Search */}
         <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-[#0B0D10] border border-[#242C37] rounded-sm">
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-[#111827] border border-[#374151] rounded-lg">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeDimension === tab.key;
@@ -171,119 +171,119 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
                     setActiveDimension(tab.key);
                     setSearchQuery('');
                   }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#333D4D]'
-                      : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                      ? 'bg-[#3B82F6] text-white shadow-xs'
+                      : 'text-[#9CA3AF] hover:text-[#F9FAFB] hover:bg-[#1F2937]'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span>{tab.label}</span>
-                  <span className="text-[10px] text-[#626D7C]">({tab.count})</span>
+                  <span className={`text-[10px] ${isActive ? 'text-blue-100' : 'text-[#6B7280]'}`}>({tab.count})</span>
                 </button>
               );
             })}
           </div>
 
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
             <input
               type="text"
               placeholder={`Filtrar en ${activeDimension}...`}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="h-8 w-60 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+              className="h-9 w-60 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-3 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:outline-hidden focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         </div>
       </div>
 
       {/* Main Table */}
-      <div className="border border-[#242C37] bg-[#12161C] overflow-hidden">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono border-collapse">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
+              <tr className="border-b border-[#374151] bg-[#111827] text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">
                 <th
                   onClick={() => handleSort('nombre')}
-                  className="py-3 px-3 cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center gap-1">
                     <span>{tabs.find(t => t.key === activeDimension)?.label.slice(0, -1) || 'Dimensión'}</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('realTon')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>Ton Real / Meta</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('cumplimientoTon')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>% Ton</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('realFact')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>Facturación Real (PYG)</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('objetivoFact')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>Meta Presupuesto</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('cumplimientoFact')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>% Fact</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 <th
                   onClick={() => handleSort('deltaFact')}
-                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                  className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>Brecha Monetaria</span>
-                    <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                    <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                   </div>
                 </th>
                 {!isProduct && (
                   <th
                     onClick={() => handleSort('cumplimientoCob')}
-                    className="py-3 px-3 text-right cursor-pointer hover:text-[#F1F5F9]"
+                    className="py-3 px-3 text-right cursor-pointer hover:text-[#F9FAFB]"
                   >
                     <div className="flex items-center justify-end gap-1">
                       <span>Cobertura (Cli / Obj)</span>
-                      <ArrowUpDown className="h-3 w-3 text-[#626D7C]" />
+                      <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                     </div>
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#242C37]/60">
+            <tbody className="divide-y divide-[#374151]">
               {sortedData.length === 0 ? (
                 <tr>
-                  <td colSpan={isProduct ? 7 : 8} className="py-8 text-center text-[#626D7C]">
+                  <td colSpan={isProduct ? 7 : 8} className="py-8 text-center text-[#9CA3AF]">
                     No se encontraron registros para los filtros aplicados.
                   </td>
                 </tr>
@@ -296,71 +296,71 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
                   return (
                     <tr
                       key={row.clave}
-                      className="hover:bg-[#191F27]/60 transition-colors text-[#F1F5F9]"
+                      className="hover:bg-[#111827]/60 transition-colors text-[#F9FAFB]"
                     >
                       <td className="py-2.5 px-3">
-                        <div className="font-bold text-[#F1F5F9]">{row.nombre}</div>
+                        <div className="font-semibold text-[#F9FAFB]">{row.nombre}</div>
                         {row.subtexto && (
-                          <div className="text-[10px] text-[#929EAD] font-sans">{row.subtexto}</div>
+                          <div className="text-[10px] text-[#9CA3AF]">{row.subtexto}</div>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-[11px]">
-                        <span className="font-bold text-[#F1F5F9]">{formatTons(row.realTon, 2)}</span>
-                        <div className="text-[10px] text-[#626D7C]">Meta: {formatTons(row.objetivoTon, 2)}</div>
+                      <td className="py-2.5 px-3 text-right text-[11px] font-mono tabular-nums">
+                        <span className="font-semibold text-[#F9FAFB]">{formatTons(row.realTon, 2)}</span>
+                        <div className="text-[10px] text-[#9CA3AF]">Meta: {formatTons(row.objetivoTon, 2)}</div>
                       </td>
-                      <td className="py-2.5 px-3 text-right">
+                      <td className="py-2.5 px-3 text-right font-mono tabular-nums">
                         <span
-                          className={`font-bold ${
+                          className={`font-semibold ${
                             row.cumplimientoTon === null
-                              ? 'text-[#626D7C]'
+                              ? 'text-[#6B7280]'
                               : isTonGood
-                              ? 'text-[#C5F467]'
+                              ? 'text-[#14B8A6]'
                               : 'text-[#F59E0B]'
                           }`}
                         >
                           {formatPercent(row.cumplimientoTon)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold text-[#F1F5F9]">
+                      <td className="py-2.5 px-3 text-right font-semibold text-[#F9FAFB] font-mono tabular-nums">
                         {formatGuaranies(row.realFact)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-[#929EAD]">
+                      <td className="py-2.5 px-3 text-right text-[#9CA3AF] font-mono tabular-nums">
                         {formatGuaranies(row.objetivoFact)}
                       </td>
-                      <td className="py-2.5 px-3 text-right">
+                      <td className="py-2.5 px-3 text-right font-mono tabular-nums">
                         <span
-                          className={`font-bold ${
+                          className={`font-semibold ${
                             row.cumplimientoFact === null
-                              ? 'text-[#626D7C]'
+                              ? 'text-[#6B7280]'
                               : isFactGood
-                              ? 'text-[#C5F467]'
+                              ? 'text-[#14B8A6]'
                               : (row.cumplimientoFact || 0) >= 90
                               ? 'text-[#F59E0B]'
-                              : 'text-[#FB7185]'
+                              : 'text-[#EF4444]'
                           }`}
                         >
                           {formatPercent(row.cumplimientoFact)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold">
+                      <td className="py-2.5 px-3 text-right font-semibold font-mono tabular-nums">
                         <span
-                          className={row.deltaFact >= 0 ? 'text-[#C5F467]' : 'text-[#FB7185]'}
+                          className={row.deltaFact >= 0 ? 'text-[#14B8A6]' : 'text-[#EF4444]'}
                         >
                           {row.deltaFact >= 0 ? '+' : ''}{formatGuaranies(row.deltaFact, true)}
                         </span>
                       </td>
                       {!isProduct && (
-                        <td className="py-2.5 px-3 text-right text-[11px]">
+                        <td className="py-2.5 px-3 text-right text-[11px] font-mono tabular-nums">
                           <div>
-                            <span className="font-bold text-[#F1F5F9]">{row.clientesReal}</span>
-                            <span className="text-[#626D7C]"> / {row.coberturaObj} cli</span>
+                            <span className="font-semibold text-[#F9FAFB]">{row.clientesReal}</span>
+                            <span className="text-[#9CA3AF]"> / {row.coberturaObj} cli</span>
                           </div>
                           <span
-                            className={`text-[10px] font-bold ${
+                            className={`text-[10px] font-semibold ${
                               row.cumplimientoCob === null
-                                ? 'text-[#626D7C]'
+                                ? 'text-[#6B7280]'
                                 : isCobGood
-                                ? 'text-[#C5F467]'
+                                ? 'text-[#14B8A6]'
                                 : 'text-[#F59E0B]'
                             }`}
                           >
@@ -376,35 +376,35 @@ export const DimensionalAnalysis: React.FC<DimensionalAnalysisProps> = ({
             {/* Grand Totals Footer */}
             {sortedData.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-[#333D4D] bg-[#0B0D10] font-bold text-[#F1F5F9] text-xs">
-                  <td className="py-3 px-3 uppercase tracking-wider text-[10px] text-[#626D7C]">
+                <tr className="border-t-2 border-[#374151] bg-[#111827] font-semibold text-[#F9FAFB] text-xs">
+                  <td className="py-3 px-3 uppercase tracking-wider text-[10px] text-[#9CA3AF]">
                     TOTALES CONSOLIDADOS ({sortedData.length})
                   </td>
-                  <td className="py-3 px-3 text-right text-[11px]">
+                  <td className="py-3 px-3 text-right text-[11px] font-mono tabular-nums">
                     <div>{formatTons(totalRealTon, 2)}</div>
-                    <div className="text-[10px] text-[#626D7C]">Meta: {formatTons(totalObjTon, 2)}</div>
+                    <div className="text-[10px] text-[#9CA3AF]">Meta: {formatTons(totalObjTon, 2)}</div>
                   </td>
-                  <td className="py-3 px-3 text-right text-[#C5F467]">
+                  <td className="py-3 px-3 text-right text-[#14B8A6] font-mono tabular-nums">
                     {formatPercent(totalCumplTon)}
                   </td>
-                  <td className="py-3 px-3 text-right font-bold text-[#F1F5F9]">
+                  <td className="py-3 px-3 text-right font-bold text-[#F9FAFB] font-mono tabular-nums">
                     {formatGuaranies(totalRealFact)}
                   </td>
-                  <td className="py-3 px-3 text-right text-[#929EAD]">
+                  <td className="py-3 px-3 text-right text-[#9CA3AF] font-mono tabular-nums">
                     {formatGuaranies(totalObjFact)}
                   </td>
-                  <td className="py-3 px-3 text-right text-[#C5F467]">
+                  <td className="py-3 px-3 text-right text-[#14B8A6] font-mono tabular-nums">
                     {formatPercent(totalCumplFact)}
                   </td>
-                  <td className="py-3 px-3 text-right font-bold">
-                    <span className={totalDeltaFact >= 0 ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                  <td className="py-3 px-3 text-right font-bold font-mono tabular-nums">
+                    <span className={totalDeltaFact >= 0 ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                       {totalDeltaFact >= 0 ? '+' : ''}{formatGuaranies(totalDeltaFact, true)}
                     </span>
                   </td>
                   {!isProduct && (
-                    <td className="py-3 px-3 text-right text-[11px]">
+                    <td className="py-3 px-3 text-right text-[11px] font-mono tabular-nums">
                       <div>{totalCliReal} / {totalCobObj} cli</div>
-                      <div className="text-[#C5F467] text-[10px]">{formatPercent(totalCumplCob)}</div>
+                      <div className="text-[#14B8A6] text-[10px]">{formatPercent(totalCumplCob)}</div>
                     </td>
                   )}
                 </tr>

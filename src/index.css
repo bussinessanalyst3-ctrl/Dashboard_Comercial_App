@@ -2,19 +2,19 @@
 
 @layer base {
   :root {
-    --bg-main: #0b0d10;
-    --bg-surface: #12161c;
-    --bg-elevated: #191f27;
-    --bg-hover: #1f2732;
-    --border-subtle: #242c37;
-    --border-strong: #333d4d;
-    --text-primary: #f1f5f9;
-    --text-secondary: #929ead;
-    --text-muted: #626d7c;
-    --accent-lime: #c5f467;
-    --accent-blue: #38bdf8;
+    --bg-main: #111827;
+    --bg-surface: #1f2937;
+    --bg-elevated: #283548;
+    --bg-hover: #374151;
+    --border-subtle: #374151;
+    --border-strong: #4b5563;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --accent-teal: #14b8a6;
+    --accent-blue: #3b82f6;
     --accent-amber: #f59e0b;
-    --accent-coral: #fb7185;
+    --accent-red: #ef4444;
   }
 
   .theme-light {
@@ -27,10 +27,10 @@
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
-    --accent-lime: #4d7c0f;
-    --accent-blue: #0284c7;
+    --accent-teal: #0d9488;
+    --accent-blue: #2563eb;
     --accent-amber: #d97706;
-    --accent-coral: #e11d48;
+    --accent-red: #dc2626;
   }
 
   body {

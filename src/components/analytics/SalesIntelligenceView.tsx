@@ -60,54 +60,54 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-4">
           <div>
-            <div className="flex items-center gap-2 font-mono text-xs text-[#929EAD]">
-              <span className="font-extrabold text-[#F1F5F9]">SALES INTELLIGENCE STUDIO</span>
+            <div className="flex items-center gap-2 text-xs text-[#9CA3AF]">
+              <span className="font-bold text-[#F9FAFB]">SALES INTELLIGENCE STUDIO</span>
               <span>/</span>
-              <span className="text-[#C5F467]">MATRIZ DE VOLUMEN Y VALORIZACIÓN</span>
+              <span className="text-[#3B82F6] font-semibold">MATRIZ DE VOLUMEN Y VALORIZACIÓN</span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+            <h2 className="mt-1 text-base font-bold text-[#F9FAFB]">
               Análisis Cuantitativo de Líneas de Producto & Velocidad de Facturación
             </h2>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs">
-            <span className="text-[#929EAD]">Total Despachado:</span>
-            <span className="font-bold text-[#C5F467]">{formatTons(kpis.ventasToneladas, 2)}</span>
-            <span className="text-[#333D4D]">|</span>
-            <span className="text-[#929EAD]">Facturado:</span>
-            <span className="font-bold text-[#F1F5F9]">{formatGuaranies(kpis.ventasFacturacion, true)}</span>
+          <div className="flex items-center gap-3 text-xs font-mono tabular-nums">
+            <span className="text-[#9CA3AF] font-sans">Total Despachado:</span>
+            <span className="font-bold text-[#14B8A6]">{formatTons(kpis.ventasToneladas, 2)}</span>
+            <span className="text-[#4B5563]">|</span>
+            <span className="text-[#9CA3AF] font-sans">Facturado:</span>
+            <span className="font-bold text-[#F9FAFB]">{formatGuaranies(kpis.ventasFacturacion, true)}</span>
           </div>
         </div>
 
         {/* Quick Analytical Insights */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Línea Dominante en Valor</div>
-            <div className="text-sm font-bold text-[#C5F467] mt-0.5">{productAggs[0]?.nombre || 'N/D'}</div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Línea Dominante en Valor</div>
+            <div className="text-sm font-bold text-[#14B8A6] mt-1">{productAggs[0]?.nombre || 'N/D'}</div>
+            <div className="text-[11px] text-[#9CA3AF] mt-1 font-mono tabular-nums">
               {productAggs[0] ? formatGuaranies(productAggs[0].realFact, true) : '0'} ({productAggs[0]?.realTon.toFixed(2)} Ton)
             </div>
           </div>
 
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Precio Medio Efectivo / Ton</div>
-            <div className="text-sm font-bold text-[#38BDF8] mt-0.5">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Precio Medio Efectivo / Ton</div>
+            <div className="text-sm font-bold text-[#38BDF8] mt-1 font-mono tabular-nums">
               {kpis.ventasToneladas > 0 ? formatGuaranies(Math.round(kpis.ventasFacturacion / kpis.ventasToneladas), true) : '0'}
             </div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+            <div className="text-[11px] text-[#9CA3AF] mt-1">
               Relación promedio de valor por tonelada física
             </div>
           </div>
 
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Líneas en Meta (&ge;100%)</div>
-            <div className="text-sm font-bold text-[#F1F5F9] mt-0.5">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Líneas en Meta (&ge;100%)</div>
+            <div className="text-sm font-bold text-[#F9FAFB] mt-1">
               {productAggs.filter(p => (p.cumplimientoFact || 0) >= 100).length} de {productAggs.length} líneas
             </div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+            <div className="text-[11px] text-[#9CA3AF] mt-1">
               Cumplimiento presupuestario de catálogo
             </div>
           </div>
@@ -115,22 +115,22 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
       </div>
 
       {/* SCATTER PLOT: MATRIZ DE VOLUMEN (X) vs FACTURACIÓN (Y) */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
               Matriz de Dispersión: Volumen Físico (Ton) vs Facturación (PYG)
             </h3>
-            <p className="text-[11px] font-mono text-[#929EAD]">
+            <p className="text-[11px] text-[#9CA3AF]">
               Cada cuadrante refleja la relación de valor unitario y volumen despachado
             </p>
           </div>
-          <div className="flex items-center gap-3 text-xs font-mono text-[#929EAD]">
-            <span className="flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#C5F467]" /> Meta Cumplida (&ge;100%)
+          <div className="flex items-center gap-4 text-xs text-[#9CA3AF]">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#14B8A6]" /> Meta Cumplida (&ge;100%)
             </span>
-            <span className="flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#FB7185]" /> Brecha (&lt;100%)
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]" /> Brecha (&lt;100%)
             </span>
           </div>
         </div>
@@ -138,43 +138,43 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-              <CartesianGrid strokeDasharray="2 2" stroke="#1F2732" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.6} />
               <XAxis
                 type="number"
                 dataKey="toneladas"
                 name="Toneladas"
-                tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
                 tickFormatter={v => `${v}T`}
-                label={{ value: 'Volumen Despachado (Toneladas)', position: 'insideBottom', offset: -10, fill: '#626D7C', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                label={{ value: 'Volumen Despachado (Toneladas)', position: 'insideBottom', offset: -10, fill: '#9CA3AF', fontSize: 10 }}
               />
               <YAxis
                 type="number"
                 dataKey="facturacionM"
                 name="Facturación"
-                tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
                 tickFormatter={v => `₲${v}M`}
-                label={{ value: 'Facturación (Millones PYG)', angle: -90, position: 'insideLeft', offset: 10, fill: '#626D7C', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                label={{ value: 'Facturación (Millones PYG)', angle: -90, position: 'insideLeft', offset: 10, fill: '#9CA3AF', fontSize: 10 }}
               />
               <Tooltip
                 cursor={{ strokeDasharray: '3 3' }}
                 formatter={(val: any, name: any, item: any) => {
                   const p = item.payload;
                   return [
-                    <div key="scat" className="space-y-1 font-mono text-xs">
-                      <div className="font-bold text-[#F1F5F9]">{p.name}</div>
-                      <div className="text-[#38BDF8]">Facturación: ₲ {p.facturacionRaw.toLocaleString('es-PY')}</div>
-                      <div className="text-[#C5F467]">Volumen: {p.toneladas.toFixed(2)} Ton</div>
-                      <div className="text-[#929EAD]">Valor/Ton: ₲ {p.pricePerTon.toLocaleString('es-PY')} / Ton</div>
-                      <div className="text-xs font-bold text-slate-300">Cumplimiento: {p.cumplimiento.toFixed(1)}%</div>
+                    <div key="scat" className="space-y-1 text-xs">
+                      <div className="font-bold text-[#F9FAFB]">{p.name}</div>
+                      <div className="text-[#38BDF8] font-mono">Facturación: ₲ {p.facturacionRaw.toLocaleString('es-PY')}</div>
+                      <div className="text-[#14B8A6] font-mono">Volumen: {p.toneladas.toFixed(2)} Ton</div>
+                      <div className="text-[#9CA3AF] font-mono">Valor/Ton: ₲ {p.pricePerTon.toLocaleString('es-PY')} / Ton</div>
+                      <div className="text-xs font-semibold text-slate-300 font-mono">Cumplimiento: {p.cumplimiento.toFixed(1)}%</div>
                     </div>,
                     ''
                   ];
                 }}
                 contentStyle={{
-                  backgroundColor: '#0B0D10',
-                  border: '1px solid #242C37',
-                  borderRadius: '2px',
-                  color: '#F1F5F9'
+                  backgroundColor: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#F9FAFB'
                 }}
               />
               <Scatter
@@ -187,7 +187,7 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
                 {scatterData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.cumplimiento >= 100 ? '#C5F467' : '#FB7185'}
+                    fill={entry.cumplimiento >= 100 ? '#14B8A6' : '#EF4444'}
                     r={7}
                   />
                 ))}
@@ -198,28 +198,28 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
       </div>
 
       {/* DETAILED PRODUCT ANALYTICAL TABLE */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-3 mb-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-3 mb-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
             Desglose Analítico por Línea de Producto
           </h3>
 
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
             <input
               type="text"
               placeholder="Buscar producto..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="h-7 w-48 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs font-mono text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+              className="h-8 w-52 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-3 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:outline-hidden focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-[#242C37]">
-          <table className="w-full text-left text-xs font-mono border-collapse">
+        <div className="overflow-x-auto rounded-md border border-[#374151]">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
+              <tr className="border-b border-[#374151] bg-[#111827] text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">
                 <th className="py-2.5 px-3">Línea de Producto</th>
                 <th className="py-2.5 px-3 text-right">Facturación Real</th>
                 <th className="py-2.5 px-3 text-right">Presupuesto</th>
@@ -231,45 +231,45 @@ export const SalesIntelligenceView: React.FC<SalesIntelligenceViewProps> = ({
                 <th className="py-2.5 px-3 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#242C37]/60">
+            <tbody className="divide-y divide-[#374151]">
               {sortedProducts.map((p, idx) => {
                 const priceTon = p.realTon > 0 ? Math.round(p.realFact / p.realTon) : 0;
                 const isOver = (p.cumplimientoFact || 0) >= 100;
 
                 return (
-                  <tr key={p.clave} className="hover:bg-[#191F27]/60 text-[#F1F5F9]">
-                    <td className="py-2.5 px-3 font-bold">
+                  <tr key={p.clave} className="hover:bg-[#111827]/60 text-[#F9FAFB] transition-colors">
+                    <td className="py-2.5 px-3 font-semibold">
                       {idx + 1}. {p.nombre}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-[#F1F5F9]">
+                    <td className="py-2.5 px-3 text-right font-bold text-[#F9FAFB] font-mono tabular-nums">
                       {formatGuaranies(p.realFact)}
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#929EAD]">
+                    <td className="py-2.5 px-3 text-right text-[#9CA3AF] font-mono tabular-nums">
                       {formatGuaranies(p.objetivoFact)}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={isOver ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                    <td className="py-2.5 px-3 text-right font-semibold font-mono tabular-nums">
+                      <span className={isOver ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {formatPercent(p.cumplimientoFact)}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#F1F5F9]">
+                    <td className="py-2.5 px-3 text-right text-[#F9FAFB] font-mono tabular-nums">
                       {formatTons(p.realTon, 2)}
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#929EAD]">
+                    <td className="py-2.5 px-3 text-right text-[#9CA3AF] font-mono tabular-nums">
                       {formatTons(p.objetivoTon, 2)}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={(p.cumplimientoTon || 0) >= 100 ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                    <td className="py-2.5 px-3 text-right font-semibold font-mono tabular-nums">
+                      <span className={(p.cumplimientoTon || 0) >= 100 ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {formatPercent(p.cumplimientoTon)}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#38BDF8]">
+                    <td className="py-2.5 px-3 text-right text-[#38BDF8] font-mono tabular-nums">
                       {formatGuaranies(priceTon, true)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <button
                         onClick={() => onSelectProduct(p.clave)}
-                        className="text-xs font-bold text-[#C5F467] hover:underline"
+                        className="rounded px-2 py-0.5 text-xs font-semibold text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors cursor-pointer"
                       >
                         Filtrar
                       </button>

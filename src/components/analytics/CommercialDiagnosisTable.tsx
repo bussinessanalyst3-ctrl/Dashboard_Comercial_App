@@ -88,7 +88,7 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
     const p2 = 18 - ((val * 0.96 - 50) / 100) * 16;
     const p3 = 18 - ((val - 50) / 100) * 16;
 
-    const strokeColor = val >= 100 ? '#C5F467' : val >= 90 ? '#38BDF8' : '#FB7185';
+    const strokeColor = val >= 100 ? '#14B8A6' : val >= 90 ? '#3B82F6' : '#EF4444';
 
     return (
       <svg className="h-5 w-16 shrink-0" viewBox="0 0 60 20">
@@ -106,68 +106,68 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
   };
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] p-5">
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
       {/* Header & Tabs */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#242C37] pb-4 mb-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#374151] pb-4 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
-              ZONA E — DIAGNÓSTICO COMERCIAL & MATRIZ DE DESVIACIONES
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
+              Diagnóstico Operativo & Matriz de Desviaciones
             </h3>
-            <span className="text-xs text-[#626D7C]">/</span>
-            <span className="text-[11px] font-mono text-[#929EAD]">
-              Filtro operativo de contingencias y áreas de alto rendimiento
+            <span className="text-xs text-[#4B5563]">/</span>
+            <span className="text-[11px] text-[#9CA3AF]">
+              Análisis granular de contingencias y áreas de alto rendimiento
             </span>
           </div>
-          <p className="mt-1 text-xs text-[#929EAD]">
-            Identificación directa de rutas con mayor brecha, concentración de producto y cumplimiento por supervisión.
+          <p className="mt-1 text-xs text-[#9CA3AF]">
+            Identificación de rutas con mayor brecha, concentración de producto y cumplimiento por supervisión.
           </p>
         </div>
 
         {/* View Switcher */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#0B0D10] border border-[#242C37] rounded-sm text-xs font-mono">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#111827] border border-[#374151] rounded-md text-xs">
           <button
             onClick={() => { setActiveView('rutas-brecha'); setSearchTerm(''); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors ${
               activeView === 'rutas-brecha'
-                ? 'bg-[#191F27] text-[#FB7185] font-bold border border-[#FB7185]/30'
-                : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                ? 'bg-[#EF4444]/20 text-[#EF4444] font-semibold border border-[#EF4444]/40'
+                : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
             }`}
           >
-            <AlertTriangle className="h-3.5 w-3.5 text-[#FB7185]" />
+            <AlertTriangle className="h-3.5 w-3.5 text-[#EF4444]" />
             <span>Rutas con Brecha ({deficitRoutes.length})</span>
           </button>
 
           <button
             onClick={() => { setActiveView('rutas-lideres'); setSearchTerm(''); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors ${
               activeView === 'rutas-lideres'
-                ? 'bg-[#191F27] text-[#C5F467] font-bold border border-[#C5F467]/30'
-                : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                ? 'bg-[#14B8A6]/20 text-[#14B8A6] font-semibold border border-[#14B8A6]/40'
+                : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
             }`}
           >
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#C5F467]" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#14B8A6]" />
             <span>Rutas con Superávit ({surplusRoutes.length})</span>
           </button>
 
           <button
             onClick={() => { setActiveView('productos'); setSearchTerm(''); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors ${
               activeView === 'productos'
-                ? 'bg-[#191F27] text-[#38BDF8] font-bold border border-[#38BDF8]/30'
-                : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                ? 'bg-[#3B82F6]/20 text-[#3B82F6] font-semibold border border-[#3B82F6]/40'
+                : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
             }`}
           >
-            <Layers className="h-3.5 w-3.5 text-[#38BDF8]" />
+            <Layers className="h-3.5 w-3.5 text-[#3B82F6]" />
             <span>Mix de Productos ({sortedProducts.length})</span>
           </button>
 
           <button
             onClick={() => { setActiveView('supervisores'); setSearchTerm(''); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors ${
               activeView === 'supervisores'
-                ? 'bg-[#191F27] text-[#F1F5F9] font-bold border border-[#333D4D]'
-                : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                ? 'bg-[#374151] text-[#F9FAFB] font-semibold border border-[#4B5563]'
+                : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
             }`}
           >
             <span>Supervisores ({sortedSupervisors.length})</span>
@@ -176,41 +176,41 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
       </div>
 
       {/* Subheader / Search */}
-      <div className="flex items-center justify-between mb-3 text-xs font-mono">
-        <div className="text-[#929EAD]">
+      <div className="flex items-center justify-between mb-3 text-xs">
+        <div className="text-[#9CA3AF]">
           Mostrando {filteredList.length} registros clasificados por desviación
         </div>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280]" />
           <input
             type="text"
             placeholder="Filtrar en diagnóstico..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="h-7 w-52 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+            className="h-8 w-60 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-2.5 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden"
           />
         </div>
       </div>
 
       {/* Advanced Matrix Table */}
-      <div className="overflow-x-auto border border-[#242C37]">
-        <table className="w-full text-left text-xs font-mono border-collapse">
+      <div className="overflow-x-auto rounded-md border border-[#374151]">
+        <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
-              <th className="py-2.5 px-3">Unidad de Análisis</th>
-              <th className="py-2.5 px-3 text-right">Facturación Real</th>
-              <th className="py-2.5 px-3">Contribución / Barra</th>
-              <th className="py-2.5 px-3 text-right">Meta Presupuestaria</th>
-              <th className="py-2.5 px-3 text-right">Cumplimiento %</th>
-              <th className="py-2.5 px-3 text-right">Brecha Monetaria</th>
-              <th className="py-2.5 px-3 text-center">Tendencia</th>
-              <th className="py-2.5 px-3 text-center">Acción</th>
+            <tr className="border-b border-[#374151] bg-[#111827] text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+              <th className="py-2.5 px-3.5">Unidad de Análisis</th>
+              <th className="py-2.5 px-3.5 text-right">Facturación Real</th>
+              <th className="py-2.5 px-3.5">Contribución / Barra</th>
+              <th className="py-2.5 px-3.5 text-right">Meta Presupuestaria</th>
+              <th className="py-2.5 px-3.5 text-right">Cumplimiento %</th>
+              <th className="py-2.5 px-3.5 text-right">Brecha Monetaria</th>
+              <th className="py-2.5 px-3.5 text-center">Tendencia</th>
+              <th className="py-2.5 px-3.5 text-center">Acción</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#242C37]/60">
+          <tbody className="divide-y divide-[#374151]/60">
             {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-xs text-[#626D7C]">
+                <td colSpan={8} className="py-8 text-center text-xs text-[#6B7280]">
                   No se registran elementos en esta categoría bajo los filtros seleccionados.
                 </td>
               </tr>
@@ -222,32 +222,32 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
                 return (
                   <tr
                     key={row.clave}
-                    className="hover:bg-[#191F27]/60 transition-colors text-[#F1F5F9]"
+                    className="hover:bg-[#243042] transition-colors text-[#F9FAFB]"
                   >
                     {/* 1. Unit */}
-                    <td className="py-2 px-3">
+                    <td className="py-2.5 px-3.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#626D7C] w-4">{idx + 1}.</span>
+                        <span className="text-[10px] text-[#6B7280] font-mono w-4">{idx + 1}.</span>
                         <div>
-                          <div className="font-bold text-[#F1F5F9]">{row.nombre}</div>
+                          <div className="font-semibold text-[#F9FAFB]">{row.nombre}</div>
                           {row.subtexto && (
-                            <div className="text-[10px] text-[#929EAD] font-sans">{row.subtexto}</div>
+                            <div className="text-[11px] text-[#9CA3AF]">{row.subtexto}</div>
                           )}
                         </div>
                       </div>
                     </td>
 
                     {/* 2. Real Fact */}
-                    <td className="py-2 px-3 text-right font-bold text-[#F1F5F9]">
+                    <td className="py-2.5 px-3.5 text-right font-bold font-mono text-[#F9FAFB]">
                       {formatGuaranies(row.realFact)}
                     </td>
 
                     {/* 3. In-Cell Data Bar */}
-                    <td className="py-2 px-3 w-32">
-                      <div className="h-2 w-full bg-[#0B0D10] border border-[#242C37] rounded-xs overflow-hidden">
+                    <td className="py-2.5 px-3.5 w-32">
+                      <div className="h-2 w-full bg-[#111827] border border-[#374151] rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${
-                            activeView === 'rutas-brecha' ? 'bg-[#FB7185]' : 'bg-[#C5F467]'
+                          className={`h-full rounded-full ${
+                            activeView === 'rutas-brecha' ? 'bg-[#EF4444]' : 'bg-[#14B8A6]'
                           }`}
                           style={{ width: `${Math.min(sharePct, 100)}%` }}
                         />
@@ -255,19 +255,19 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
                     </td>
 
                     {/* 4. Meta */}
-                    <td className="py-2 px-3 text-right text-[#929EAD]">
+                    <td className="py-2.5 px-3.5 text-right font-mono text-[#9CA3AF]">
                       {formatGuaranies(row.objetivoFact)}
                     </td>
 
                     {/* 5. Cumplimiento % */}
-                    <td className="py-2 px-3 text-right">
+                    <td className="py-2.5 px-3.5 text-right font-mono">
                       <span
                         className={`font-bold ${
                           isPositive
-                            ? 'text-[#C5F467]'
+                            ? 'text-[#14B8A6]'
                             : (row.cumplimientoFact || 0) >= 90
                             ? 'text-[#F59E0B]'
-                            : 'text-[#FB7185]'
+                            : 'text-[#EF4444]'
                         }`}
                       >
                         {formatPercent(row.cumplimientoFact)}
@@ -275,21 +275,21 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
                     </td>
 
                     {/* 6. Brecha */}
-                    <td className="py-2 px-3 text-right font-bold">
-                      <span className={isPositive ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                    <td className="py-2.5 px-3.5 text-right font-mono font-bold">
+                      <span className={isPositive ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {isPositive ? '+' : ''}{formatGuaranies(row.deltaFact, true)}
                       </span>
                     </td>
 
                     {/* 7. Inline Sparkline */}
-                    <td className="py-2 px-3 text-center">
+                    <td className="py-2.5 px-3.5 text-center">
                       <div className="flex justify-center">
                         {renderSparkline(row.cumplimientoFact)}
                       </div>
                     </td>
 
                     {/* 8. Action */}
-                    <td className="py-2 px-3 text-center">
+                    <td className="py-2.5 px-3.5 text-center">
                       <button
                         onClick={() => {
                           if (activeView === 'rutas-brecha' || activeView === 'rutas-lideres') {
@@ -300,11 +300,11 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
                             onSelectSupervisor(row.clave);
                           }
                         }}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#C5F467] hover:underline"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#3B82F6] hover:text-blue-400"
                         title="Filtrar todo el dashboard por este elemento"
                       >
                         <span>Explorar</span>
-                        <ArrowRight className="h-3 w-3" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -316,8 +316,8 @@ export const CommercialDiagnosisTable: React.FC<CommercialDiagnosisTableProps> =
       </div>
 
       {filteredList.length > 15 && (
-        <div className="mt-2 text-right text-[10px] font-mono text-[#626D7C]">
-          Mostrando los 15 registros más críticos. Use el buscador para consultar otros elementos.
+        <div className="mt-2 text-right text-[11px] text-[#9CA3AF]">
+          Mostrando los 15 registros principales. Use el buscador para consultar otros elementos.
         </div>
       )}
     </div>

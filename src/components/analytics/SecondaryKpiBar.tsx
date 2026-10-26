@@ -21,92 +21,92 @@ export const SecondaryKpiBar: React.FC<SecondaryKpiBarProps> = ({ kpis, isProduc
     kpis.totalRutas > 0 ? Math.round(kpis.ventasFacturacion / kpis.totalRutas) : 0;
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] divide-y lg:divide-y-0 lg:divide-x divide-[#242C37] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] divide-y lg:divide-y-0 lg:divide-x divide-[#374151] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 shadow-xs">
       {/* 1. Volumen Físico */}
       <div className="p-4 sm:p-5">
-        <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#929EAD] mb-1">
-          <span>DESPACHO FÍSICO</span>
-          <Scale className="h-3.5 w-3.5 text-[#626D7C]" />
+        <div className="flex items-center justify-between text-xs font-medium text-[#9CA3AF] mb-1">
+          <span>Despacho Físico</span>
+          <Scale className="h-4 w-4 text-[#6B7280]" />
         </div>
-        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9]">
+        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F9FAFB]">
           {formatTons(kpis.ventasToneladas, 2)}
         </div>
-        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#929EAD]">
+        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#9CA3AF]">
           <span>Meta: {formatTons(kpis.objetivoToneladas, 2)}</span>
           <span
             className={`font-bold ${
-              (kpis.cumplimientoToneladas || 0) >= 100 ? 'text-[#C5F467]' : 'text-[#FB7185]'
+              (kpis.cumplimientoToneladas || 0) >= 100 ? 'text-[#14B8A6]' : 'text-[#EF4444]'
             }`}
           >
             {formatPercent(kpis.cumplimientoToneladas)}
           </span>
         </div>
-        <div className="mt-1 text-[10px] font-mono text-[#626D7C]">
+        <div className="mt-1 text-[11px] font-mono text-[#6B7280]">
           Delta: {kpis.diferenciaToneladas >= 0 ? '+' : ''}{formatTons(kpis.diferenciaToneladas, 2)}
         </div>
       </div>
 
       {/* 2. Cobertura de Clientes */}
       <div className="p-4 sm:p-5">
-        <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#929EAD] mb-1">
-          <span>COBERTURA DE CLIENTES</span>
-          <Users className="h-3.5 w-3.5 text-[#626D7C]" />
+        <div className="flex items-center justify-between text-xs font-medium text-[#9CA3AF] mb-1">
+          <span>Cobertura de Clientes</span>
+          <Users className="h-4 w-4 text-[#6B7280]" />
         </div>
-        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9]">
+        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F9FAFB]">
           {isProductFiltered ? 'N/A' : `${formatInteger(kpis.clientesReales)} cli`}
         </div>
-        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#929EAD]">
+        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#9CA3AF]">
           <span>{isProductFiltered ? 'Por ruta/zona' : `Plan: ${formatInteger(kpis.coberturaPlanificada)}`}</span>
           <span
             className={`font-bold ${
               isProductFiltered
-                ? 'text-[#626D7C]'
+                ? 'text-[#6B7280]'
                 : (kpis.cumplimientoCobertura || 0) >= 90
-                ? 'text-[#C5F467]'
+                ? 'text-[#14B8A6]'
                 : 'text-[#F59E0B]'
             }`}
           >
             {isProductFiltered ? 'N/D' : formatPercent(kpis.cumplimientoCobertura)}
           </span>
         </div>
-        <div className="mt-1 text-[10px] font-mono text-[#626D7C]">
+        <div className="mt-1 text-[11px] font-mono text-[#6B7280]">
           {isProductFiltered ? 'Incompatible con filtro de producto' : `Brecha: ${kpis.diferenciaCobertura} clientes`}
         </div>
       </div>
 
       {/* 3. Valorización por Tonelada (Precio Medio Efectivo) */}
       <div className="p-4 sm:p-5">
-        <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#929EAD] mb-1">
-          <span>VALORIZACIÓN / TONELADA</span>
-          <TrendingUp className="h-3.5 w-3.5 text-[#626D7C]" />
+        <div className="flex items-center justify-between text-xs font-medium text-[#9CA3AF] mb-1">
+          <span>Valorización / Tonelada</span>
+          <TrendingUp className="h-4 w-4 text-[#6B7280]" />
         </div>
-        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9]">
+        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F9FAFB]">
           {formatGuaranies(avgPricePerTon, true)}
         </div>
-        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#929EAD]">
+        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#9CA3AF]">
           <span>Facturación / Volumen</span>
-          <span className="text-[#38BDF8]">PYG / Ton</span>
+          <span className="text-[#3B82F6] font-semibold">PYG / Ton</span>
         </div>
-        <div className="mt-1 text-[10px] font-mono text-[#626D7C]">
-          Rendimiento monetario por unidad despachada
+        <div className="mt-1 text-[11px] text-[#6B7280]">
+          Rendimiento monetario medio
         </div>
       </div>
 
-      {/* 4. Intensidad por Ruta & Conteo Operativo */}
+      {/* 4. Densidad por Ruta */}
       <div className="p-4 sm:p-5">
-        <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-[#929EAD] mb-1">
-          <span>DENSIDAD POR RUTA</span>
-          <Layers className="h-3.5 w-3.5 text-[#626D7C]" />
+        <div className="flex items-center justify-between text-xs font-medium text-[#9CA3AF] mb-1">
+          <span>Densidad por Circuito</span>
+          <Layers className="h-4 w-4 text-[#6B7280]" />
         </div>
-        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9]">
+        <div className="text-xl sm:text-2xl font-bold font-mono text-[#F9FAFB]">
           {formatGuaranies(avgSalesPerRoute, true)}
         </div>
-        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#929EAD]">
+        <div className="mt-1 flex items-center justify-between text-xs font-mono text-[#9CA3AF]">
           <span>{kpis.totalRutas} rutas activas</span>
           <span>{kpis.totalSupervisores} supervisores</span>
         </div>
-        <div className="mt-1 text-[10px] font-mono text-[#626D7C]">
-          Facturación promedio por circuito comercial
+        <div className="mt-1 text-[11px] text-[#6B7280]">
+          Facturación promedio por ruta
         </div>
       </div>
     </div>

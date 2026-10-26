@@ -61,58 +61,58 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-4">
           <div>
-            <div className="flex items-center gap-2 font-mono text-xs text-[#929EAD]">
-              <span className="font-extrabold text-[#F1F5F9]">COVERAGE & CLIENT STUDIO</span>
+            <div className="flex items-center gap-2 text-xs text-[#9CA3AF]">
+              <span className="font-bold text-[#F9FAFB]">COVERAGE & CLIENT STUDIO</span>
               <span>/</span>
-              <span className="text-[#C5F467]">PENETRACIÓN DE PUNTOS DE VENTA</span>
+              <span className="text-[#3B82F6] font-semibold">PENETRACIÓN DE PUNTOS DE VENTA</span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-[#F1F5F9]">
+            <h2 className="mt-1 text-base font-bold text-[#F9FAFB]">
               Cobertura Efectiva de Clientes por Circuito Comercial & Vendedor
             </h2>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs">
-            <span className="text-[#929EAD]">Clientes Reales:</span>
-            <span className="font-bold text-[#C5F467]">{formatInteger(kpis.clientesReales)}</span>
-            <span className="text-[#333D4D]">|</span>
-            <span className="text-[#929EAD]">Plan:</span>
-            <span className="font-bold text-[#F1F5F9]">{formatInteger(kpis.coberturaPlanificada)}</span>
-            <span className="text-[#333D4D]">|</span>
+          <div className="flex items-center gap-3 text-xs font-mono tabular-nums">
+            <span className="text-[#9CA3AF] font-sans">Clientes Reales:</span>
+            <span className="font-bold text-[#14B8A6]">{formatInteger(kpis.clientesReales)}</span>
+            <span className="text-[#4B5563]">|</span>
+            <span className="text-[#9CA3AF] font-sans">Plan:</span>
+            <span className="font-bold text-[#F9FAFB]">{formatInteger(kpis.coberturaPlanificada)}</span>
+            <span className="text-[#4B5563]">|</span>
             <span className="font-bold text-[#38BDF8]">{formatPercent(kpis.cumplimientoCobertura)}</span>
           </div>
         </div>
 
         {/* Quick Analytical Summary */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Universo Total Planificado</div>
-            <div className="text-sm font-bold text-[#F1F5F9] mt-0.5">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Universo Total Planificado</div>
+            <div className="text-sm font-bold text-[#F9FAFB] mt-1 font-mono tabular-nums">
               {formatInteger(kpis.coberturaPlanificada)} Puntos de Venta
             </div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+            <div className="text-[11px] text-[#9CA3AF] mt-1">
               Cartera teórica asignada a las 33 rutas comerciales
             </div>
           </div>
 
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Clientes con Compra Efectiva</div>
-            <div className="text-sm font-bold text-[#C5F467] mt-0.5">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Clientes con Compra Efectiva</div>
+            <div className="text-sm font-bold text-[#14B8A6] mt-1 font-mono tabular-nums">
               {formatInteger(kpis.clientesReales)} Clientes
             </div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+            <div className="text-[11px] text-[#9CA3AF] mt-1">
               Puntos atendidos con emisión de factura en el período
             </div>
           </div>
 
-          <div className="p-3 border border-[#242C37] bg-[#0B0D10]">
-            <div className="text-[10px] text-[#626D7C] uppercase">Rutas con Penetración &ge;90%</div>
-            <div className="text-sm font-bold text-[#38BDF8] mt-0.5">
+          <div className="p-3.5 rounded-md border border-[#374151] bg-[#111827]">
+            <div className="text-[10px] text-[#9CA3AF] font-semibold uppercase tracking-wider">Rutas con Penetración &ge;90%</div>
+            <div className="text-sm font-bold text-[#38BDF8] mt-1 font-mono tabular-nums">
               {routeAggs.filter(r => (r.cumplimientoCob || 0) >= 90).length} de {routeAggs.length} rutas
             </div>
-            <div className="text-[11px] text-[#929EAD] mt-1">
+            <div className="text-[11px] text-[#9CA3AF] mt-1">
               Circuitos con penetración dentro del rango aceptable
             </div>
           </div>
@@ -120,22 +120,22 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
       </div>
 
       {/* CHART: TOP RUTAS POR COBERTURA (Plan vs Real) */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex items-center justify-between border-b border-[#242C37] pb-3 mb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#374151] pb-3 mb-4">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
               Cobertura Planificada vs Clientes Efectivos por Ruta
             </h3>
-            <p className="text-[11px] font-mono text-[#929EAD]">
+            <p className="text-[11px] text-[#9CA3AF]">
               Comparativa cuantitativa de penetración por código de ruta
             </p>
           </div>
-          <div className="flex items-center gap-3 text-xs font-mono text-[#929EAD]">
-            <span className="flex items-center gap-1">
-              <span className="h-2.5 w-2.5 bg-[#C5F467]" /> Clientes Reales
+          <div className="flex items-center gap-4 text-xs text-[#9CA3AF]">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-xs bg-[#14B8A6]" /> Clientes Reales
             </span>
-            <span className="flex items-center gap-1">
-              <span className="h-2.5 w-2.5 bg-[#333D4D]" /> Planificado
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-xs bg-[#4B5563]" /> Planificado
             </span>
           </div>
         </div>
@@ -146,16 +146,16 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
               data={chartData}
               margin={{ top: 10, right: 15, left: -10, bottom: 25 }}
             >
-              <CartesianGrid strokeDasharray="2 2" stroke="#1F2732" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.6} vertical={false} />
               <XAxis
                 dataKey="name"
                 angle={-30}
                 textAnchor="end"
                 interval={0}
-                tick={{ fontSize: 9, fill: '#929EAD', fontFamily: 'JetBrains Mono' }}
+                tick={{ fontSize: 9, fill: '#9CA3AF' }}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
               />
               <Tooltip
                 formatter={(val: any, name: any) => [
@@ -163,19 +163,18 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
                   name === 'real' ? 'Clientes Reales' : 'Planificado'
                 ]}
                 contentStyle={{
-                  backgroundColor: '#0B0D10',
-                  border: '1px solid #242C37',
-                  borderRadius: '2px',
-                  color: '#F1F5F9',
-                  fontFamily: 'JetBrains Mono',
+                  backgroundColor: '#111827',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#F9FAFB',
                   fontSize: '11px'
                 }}
               />
-              <Bar dataKey="plan" fill="#333D4D" radius={[2, 2, 0, 0]} name="plan" />
+              <Bar dataKey="plan" fill="#4B5563" radius={[3, 3, 0, 0]} name="plan" />
               <Bar
                 dataKey="real"
-                fill="#C5F467"
-                radius={[2, 2, 0, 0]}
+                fill="#14B8A6"
+                radius={[3, 3, 0, 0]}
                 name="real"
                 onClick={(entry: any) => {
                   if (entry?.name) onSelectRoute(entry.name);
@@ -188,14 +187,14 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
       </div>
 
       {/* FULL ROUTE COVERAGE TABLE */}
-      <div className="border border-[#242C37] bg-[#12161C] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#242C37] pb-3 mb-4">
+      <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#374151] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
               Matriz Detallada de Penetración por Ruta y Vendedor
             </h3>
-            <span className="text-xs text-[#626D7C]">/</span>
-            <span className="text-[11px] font-mono text-[#929EAD]">
+            <span className="text-xs text-[#6B7280]">/</span>
+            <span className="text-[11px] text-[#9CA3AF] font-mono">
               {sortedRoutes.length} rutas registradas
             </span>
           </div>
@@ -203,27 +202,27 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSortAsc(!sortAsc)}
-              className="px-2.5 py-1 border border-[#242C37] bg-[#0B0D10] text-xs font-mono text-[#929EAD] hover:text-[#F1F5F9] transition-colors"
+              className="px-2.5 py-1 rounded border border-[#374151] bg-[#111827] text-xs font-semibold text-[#D1D5DB] hover:text-[#F9FAFB] hover:border-[#4B5563] transition-colors cursor-pointer"
             >
               {sortAsc ? 'Orden: Menor a Mayor ↑' : 'Orden: Mayor a Menor ↓'}
             </button>
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
               <input
                 type="text"
                 placeholder="Buscar ruta o vendedor..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="h-7 w-48 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs font-mono text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+                className="h-8 w-52 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-3 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:outline-hidden focus:ring-1 focus:ring-[#3B82F6]"
               />
             </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-[#242C37]">
-          <table className="w-full text-left text-xs font-mono border-collapse">
+        <div className="overflow-x-auto rounded-md border border-[#374151]">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-[#242C37] bg-[#0B0D10] text-[10px] font-bold text-[#626D7C] uppercase tracking-wider">
+              <tr className="border-b border-[#374151] bg-[#111827] text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">
                 <th className="py-2.5 px-3">Código de Ruta</th>
                 <th className="py-2.5 px-3">Vendedor & Supervisor</th>
                 <th className="py-2.5 px-3 text-right">Clientes Reales</th>
@@ -234,42 +233,42 @@ export const CoverageIntelligenceView: React.FC<CoverageIntelligenceViewProps> =
                 <th className="py-2.5 px-3 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#242C37]/60">
+            <tbody className="divide-y divide-[#374151]">
               {sortedRoutes.map((r, idx) => {
                 const isGood = (r.cumplimientoCob || 0) >= 90;
                 const cliGap = r.clientesReal - r.coberturaObj;
 
                 return (
-                  <tr key={r.clave} className="hover:bg-[#191F27]/60 text-[#F1F5F9]">
-                    <td className="py-2.5 px-3 font-bold text-[#F1F5F9]">
+                  <tr key={r.clave} className="hover:bg-[#111827]/60 text-[#F9FAFB] transition-colors">
+                    <td className="py-2.5 px-3 font-semibold text-[#F9FAFB]">
                       {r.clave}
                     </td>
-                    <td className="py-2.5 px-3 text-[#929EAD] font-sans">
+                    <td className="py-2.5 px-3 text-[#9CA3AF]">
                       {r.subtexto}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-[#F1F5F9]">
+                    <td className="py-2.5 px-3 text-right font-bold text-[#F9FAFB] font-mono tabular-nums">
                       {r.clientesReal}
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#929EAD]">
+                    <td className="py-2.5 px-3 text-right text-[#9CA3AF] font-mono tabular-nums">
                       {r.coberturaObj}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={isGood ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                    <td className="py-2.5 px-3 text-right font-semibold font-mono tabular-nums">
+                      <span className={isGood ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {formatPercent(r.cumplimientoCob)}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={cliGap >= 0 ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                    <td className="py-2.5 px-3 text-right font-semibold font-mono tabular-nums">
+                      <span className={cliGap >= 0 ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {cliGap >= 0 ? '+' : ''}{cliGap} cli
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right text-[#F1F5F9]">
+                    <td className="py-2.5 px-3 text-right text-[#F9FAFB] font-mono tabular-nums">
                       {formatGuaranies(r.realFact, true)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <button
                         onClick={() => onSelectRoute(r.clave)}
-                        className="text-xs font-bold text-[#C5F467] hover:underline"
+                        className="rounded px-2.5 py-1 text-xs font-semibold text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors cursor-pointer"
                       >
                         Explorar
                       </button>

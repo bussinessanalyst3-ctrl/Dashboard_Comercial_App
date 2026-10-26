@@ -52,37 +52,37 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
   }).sort((a, b) => b.delta - a.delta);
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] p-5">
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-5 shadow-xs">
       {/* Header with Switchers */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#242C37] pb-3 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#374151] pb-3 mb-4">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F9FAFB]">
             {title}
           </h3>
-          <p className="text-[11px] font-mono text-[#929EAD]">
+          <p className="text-[11px] text-[#9CA3AF]">
             Brecha cuantitativa respecto a la meta presupuestaria con eje neutral cero
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Facturación vs Toneladas */}
-          <div className="flex items-center rounded-sm border border-[#29313B] bg-[#0B0D10] p-0.5 text-xs font-mono">
+          <div className="flex items-center rounded-md border border-[#374151] bg-[#111827] p-1 text-xs">
             <button
               onClick={() => setMetricMode('facturacion')}
-              className={`px-2 py-0.5 transition-colors ${
+              className={`px-2.5 py-1 rounded-sm font-medium transition-colors ${
                 metricMode === 'facturacion'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               ₲ Facturación
             </button>
             <button
               onClick={() => setMetricMode('toneladas')}
-              className={`px-2 py-0.5 transition-colors ${
+              className={`px-2.5 py-1 rounded-sm font-medium transition-colors ${
                 metricMode === 'toneladas'
-                  ? 'bg-[#191F27] text-[#C5F467] font-bold'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#3B82F6] text-white'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               Ton Volumen
@@ -90,23 +90,23 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
           </div>
 
           {/* Absolute vs Percentage */}
-          <div className="flex items-center rounded-sm border border-[#29313B] bg-[#0B0D10] p-0.5 text-xs font-mono">
+          <div className="flex items-center rounded-md border border-[#374151] bg-[#111827] p-1 text-xs">
             <button
               onClick={() => setViewMode('absolute')}
-              className={`px-2 py-0.5 transition-colors ${
+              className={`px-2.5 py-1 rounded-sm font-medium transition-colors ${
                 viewMode === 'absolute'
-                  ? 'bg-[#191F27] text-[#F1F5F9] font-bold'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#374151] text-white'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               Delta Absoluto
             </button>
             <button
               onClick={() => setViewMode('percentage')}
-              className={`px-2 py-0.5 transition-colors ${
+              className={`px-2.5 py-1 rounded-sm font-medium transition-colors ${
                 viewMode === 'percentage'
-                  ? 'bg-[#191F27] text-[#F1F5F9] font-bold'
-                  : 'text-[#929EAD] hover:text-[#F1F5F9]'
+                  ? 'bg-[#374151] text-white'
+                  : 'text-[#9CA3AF] hover:text-[#F9FAFB]'
               }`}
             >
               % Desvío
@@ -123,19 +123,19 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
             layout="vertical"
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="2 2" stroke="#1F2732" horizontal={false} />
+            <CartesianGrid strokeDasharray="2 2" stroke="#374151" horizontal={false} />
             <XAxis
               type="number"
-              tick={{ fontSize: 10, fill: '#626D7C', fontFamily: 'JetBrains Mono' }}
+              tick={{ fontSize: 10, fill: '#6B7280', fontFamily: 'JetBrains Mono' }}
               tickFormatter={v => (viewMode === 'absolute' ? (metricMode === 'facturacion' ? `₲${v}M` : `${v}T`) : `${v.toFixed(0)}%`)}
             />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 11, fill: '#929EAD' }}
+              tick={{ fontSize: 11, fill: '#9CA3AF', fontFamily: 'Plus Jakarta Sans' }}
               width={130}
             />
-            <ReferenceLine x={0} stroke="#475569" strokeWidth={1.5} />
+            <ReferenceLine x={0} stroke="#6B7280" strokeWidth={1.5} />
             <Tooltip
               formatter={(val: any, name: any, item: any) => {
                 const payload = item.payload;
@@ -147,12 +147,12 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
                 return [
                   <div key="tip" className="space-y-1 font-mono text-xs">
                     <div>
-                      <span className="text-[#929EAD]">Desviación: </span>
-                      <strong className={payload.isPositive ? 'text-[#C5F467]' : 'text-[#FB7185]'}>
+                      <span className="text-[#9CA3AF]">Desviación: </span>
+                      <strong className={payload.isPositive ? 'text-[#14B8A6]' : 'text-[#EF4444]'}>
                         {payload.isPositive ? '+' : ''}{formattedDelta} ({payload.deltaPct.toFixed(1)}%)
                       </strong>
                     </div>
-                    <div className="text-[11px] text-[#929EAD]">
+                    <div className="text-[11px] text-[#9CA3AF]">
                       Real: {formattedReal} | Meta: {formattedObj}
                     </div>
                   </div>,
@@ -160,15 +160,15 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
                 ];
               }}
               contentStyle={{
-                backgroundColor: '#0B0D10',
-                border: '1px solid #242C37',
-                borderRadius: '2px',
-                color: '#F1F5F9'
+                backgroundColor: '#111827',
+                border: '1px solid #374151',
+                borderRadius: '6px',
+                color: '#F9FAFB'
               }}
             />
             <Bar
               dataKey="delta"
-              radius={[2, 2, 2, 2]}
+              radius={[3, 3, 3, 3]}
               onClick={(entry: any) => {
                 if (entry?.name) onSelectDimension?.(entry.name);
               }}
@@ -177,8 +177,8 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.isPositive ? '#C5F467' : '#FB7185'}
-                  fillOpacity={0.85}
+                  fill={entry.isPositive ? '#14B8A6' : '#EF4444'}
+                  fillOpacity={0.88}
                 />
               ))}
             </Bar>
@@ -186,9 +186,13 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-[#626D7C]">
-        <span>← Brecha negativa (déficit comercial)</span>
-        <span>Haga clic en una barra para filtrar · Superávit favorable →</span>
+      <div className="mt-2 flex items-center justify-between text-[11px] text-[#9CA3AF]">
+        <span className="flex items-center gap-1.5 text-[#EF4444]">
+          <span className="h-2 w-2 rounded-full bg-[#EF4444]" /> Brecha negativa (déficit comercial)
+        </span>
+        <span className="flex items-center gap-1.5 text-[#14B8A6]">
+          <span className="h-2 w-2 rounded-full bg-[#14B8A6]" /> Superávit favorable
+        </span>
       </div>
     </div>
   );

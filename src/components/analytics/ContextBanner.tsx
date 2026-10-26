@@ -54,38 +54,38 @@ export const ContextBanner: React.FC<ContextBannerProps> = ({
     : `${formatPeriodDisplay(filters.periodo).toUpperCase()} (${filters.periodo.toUpperCase()})`;
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] p-4 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#242C37]/80 pb-3">
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <span className="font-extrabold tracking-wider text-[#F1F5F9]">
-            COMMERCIAL PERFORMANCE STUDIO
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-4 sm:p-5 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#374151] pb-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-bold tracking-tight text-[#F9FAFB]">
+            Diagnóstico Ejecutivo Comercial
           </span>
-          <span className="text-[#626D7C]">/</span>
-          <span className="text-[#C5F467] font-bold tracking-wide">
+          <span className="text-[#4B5563]">/</span>
+          <span className="text-[#3B82F6] font-semibold">
             {periodLabel}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] font-mono text-[#929EAD]">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#C5F467] animate-pulse" />
-            <span>Actualizado en vivo</span>
+        <div className="flex items-center gap-3 text-xs text-[#9CA3AF]">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <span className="h-2 w-2 rounded-full bg-[#14B8A6] animate-pulse" />
+            <span>Datos activos</span>
           </span>
-          <span className="text-[#333D4D]">|</span>
-          <span>{totalVentasRecords} filas procesadas</span>
-          <span className="text-[#333D4D]">|</span>
-          <span className="text-[#626D7C]">
-            {supabaseConnected ? 'Supabase Cloud Sync' : 'Local Persistence'}
+          <span className="text-[#4B5563]">|</span>
+          <span className="font-mono text-[11px]">{totalVentasRecords} registros</span>
+          <span className="text-[#4B5563]">|</span>
+          <span className="text-[#9CA3AF]">
+            {supabaseConnected ? 'Supabase Sync' : 'Persistencia Local'}
           </span>
         </div>
       </div>
 
       {/* Narrative Sentence strictly grounded in real data */}
-      <div className="mt-3 flex items-start gap-2.5">
-        <div className="mt-0.5 shrink-0 text-[#C5F467]">
-          <Activity className="h-4 w-4" />
+      <div className="mt-3.5 flex items-start gap-3">
+        <div className="mt-0.5 shrink-0 text-[#3B82F6]">
+          <Activity className="h-5 w-5" />
         </div>
-        <p className="text-xs sm:text-sm font-sans leading-relaxed text-[#F1F5F9]/90 font-medium">
+        <p className="text-xs sm:text-sm leading-relaxed text-[#F9FAFB]/90 font-medium">
           {generateNarrative()}
         </p>
       </div>

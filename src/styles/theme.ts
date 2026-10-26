@@ -2,18 +2,18 @@ export type AppTheme = 'dark' | 'light';
 
 export const ANALYTIC_COLORS = {
   dark: {
-    bgMain: '#0B0D10',
-    bgSurface: '#12161C',
-    bgElevated: '#191F27',
-    borderSubtle: '#242C37',
-    borderStrong: '#333D4D',
-    textPrimary: '#F1F5F9',
-    textSecondary: '#929EAD',
-    textMuted: '#626D7C',
-    accentLime: '#C5F467',
-    accentBlue: '#38BDF8',
+    bgMain: '#111827',
+    bgSurface: '#1F2937',
+    bgElevated: '#243042',
+    borderSubtle: '#374151',
+    borderStrong: '#4B5563',
+    textPrimary: '#F9FAFB',
+    textSecondary: '#9CA3AF',
+    textMuted: '#6B7280',
+    accentTeal: '#14B8A6',
+    accentBlue: '#3B82F6',
     accentAmber: '#F59E0B',
-    accentCoral: '#FB7185',
+    accentRed: '#EF4444',
   },
   light: {
     bgMain: '#F8FAFC',
@@ -24,10 +24,10 @@ export const ANALYTIC_COLORS = {
     textPrimary: '#0F172A',
     textSecondary: '#475569',
     textMuted: '#94A3B8',
-    accentLime: '#4D7C0F',
-    accentBlue: '#0284C7',
+    accentTeal: '#0D9488',
+    accentBlue: '#2563EB',
     accentAmber: '#D97706',
-    accentCoral: '#E11D48',
+    accentRed: '#DC2626',
   }
 };
 
@@ -44,19 +44,19 @@ export function getComplianceStatus(pct: number | null): {
   colorHex: string;
 } {
   if (pct === null || isNaN(pct)) {
-    return { label: 'SIN DATO', variant: 'neutral', colorHex: '#626D7C' };
+    return { label: 'SIN DATO', variant: 'neutral', colorHex: '#6B7280' };
   }
   if (pct >= THRESHOLDS.EXCELLENT) {
-    return { label: 'SUPERÁVIT', variant: 'success', colorHex: '#C5F467' };
+    return { label: 'SUPERÁVIT', variant: 'success', colorHex: '#14B8A6' };
   }
   if (pct >= THRESHOLDS.TARGET) {
-    return { label: 'META ALCANZADA', variant: 'success', colorHex: '#C5F467' };
+    return { label: 'META ALCANZADA', variant: 'success', colorHex: '#14B8A6' };
   }
   if (pct >= THRESHOLDS.ACCEPTABLE) {
-    return { label: 'EN RANGO', variant: 'acceptable', colorHex: '#38BDF8' };
+    return { label: 'EN RANGO', variant: 'acceptable', colorHex: '#3B82F6' };
   }
   if (pct >= THRESHOLDS.CRITICAL) {
     return { label: 'ALERTA BRECHA', variant: 'warning', colorHex: '#F59E0B' };
   }
-  return { label: 'DESVÍO CRÍTICO', variant: 'critical', colorHex: '#FB7185' };
+  return { label: 'DESVÍO CRÍTICO', variant: 'critical', colorHex: '#EF4444' };
 }

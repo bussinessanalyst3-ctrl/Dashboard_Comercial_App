@@ -65,16 +65,16 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
   };
 
   return (
-    <div className="border border-[#242C37] bg-[#12161C] p-4 font-mono text-xs">
+    <div className="rounded-lg border border-[#374151] bg-[#1F2937] p-4 text-xs">
       {/* Top Bar: Title, Counters and Reset */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#242C37] pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#374151] pb-3">
         <div className="flex items-center gap-2">
-          <Filter className="h-3.5 w-3.5 text-[#C5F467]" />
-          <span className="font-extrabold uppercase tracking-wider text-[#F1F5F9]">
-            FILTROS MULTIDIMENSIONALES
+          <Filter className="h-4 w-4 text-[#3B82F6]" />
+          <span className="font-bold text-[#F9FAFB] tracking-tight">
+            Filtros Multidimensionales
           </span>
-          <span className="text-[#333D4D]">/</span>
-          <span className="text-[#929EAD]">
+          <span className="text-[#4B5563]">/</span>
+          <span className="text-[#9CA3AF] font-mono text-[11px]">
             {totalRecordsMatching.ventas} ventas · {totalRecordsMatching.objetivos} obj · {totalRecordsMatching.cobertura} rutas
           </span>
         </div>
@@ -83,7 +83,7 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
           {isFiltered && (
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 border border-[#FB7185]/30 bg-[#FB7185]/10 px-2.5 py-1 text-xs text-[#FB7185] hover:bg-[#FB7185]/20 transition-colors font-bold"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#EF4444]/30 bg-[#EF4444]/10 px-2.5 py-1 text-xs text-[#EF4444] hover:bg-[#EF4444]/20 transition-colors font-medium"
             >
               <RotateCcw className="h-3 w-3" />
               Restablecer
@@ -92,34 +92,34 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
           {/* Search box */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#626D7C]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280]" />
             <input
               type="text"
-              placeholder="Buscar en dimensiones..."
+              placeholder="Buscar dimensión o código..."
               value={filters.busqueda}
               onChange={e => onFilterChange({ ...filters, busqueda: e.target.value })}
-              className="h-7 w-60 rounded-sm border border-[#242C37] bg-[#0B0D10] pl-8 pr-2 text-xs text-[#F1F5F9] placeholder:text-[#626D7C] focus:border-[#C5F467] focus:outline-hidden"
+              className="h-8 w-64 rounded-md border border-[#374151] bg-[#111827] pl-8 pr-2.5 text-xs text-[#F9FAFB] placeholder:text-[#6B7280] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden"
             />
           </div>
         </div>
       </div>
 
       {/* Select Controls Row */}
-      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-3.5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {/* 1. Periodo */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            PERÍODO
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Período
           </label>
           <select
             value={filters.periodo}
             onChange={e => onFilterChange({ ...filters, periodo: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODOS">TODOS LOS PERÍODOS</option>
+            <option value="TODOS">Todos los períodos</option>
             {availablePeriods.map(p => (
               <option key={p} value={p}>
-                {formatPeriodDisplay(p).toUpperCase()} ({p})
+                {formatPeriodDisplay(p)} ({p})
               </option>
             ))}
           </select>
@@ -127,15 +127,15 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
         {/* 2. Zona */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            ZONA
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Zona Territorial
           </label>
           <select
             value={filters.zona}
             onChange={e => onFilterChange({ ...filters, zona: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODAS">TODAS LAS ZONAS</option>
+            <option value="TODAS">Todas las zonas</option>
             {availableZonas.map(z => (
               <option key={z} value={z}>
                 {z}
@@ -146,15 +146,15 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
         {/* 3. Supervisor */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            SUPERVISOR
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Supervisor
           </label>
           <select
             value={filters.supervisor}
             onChange={e => onFilterChange({ ...filters, supervisor: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODOS">TODOS LOS SUPERVISORES</option>
+            <option value="TODOS">Todos los supervisores</option>
             {availableSupervisores.map(s => (
               <option key={s} value={s}>
                 {s}
@@ -165,15 +165,15 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
         {/* 4. Código Ruta */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            CÓDIGO DE RUTA
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Código de Ruta
           </label>
           <select
             value={filters.codigoRuta}
             onChange={e => onFilterChange({ ...filters, codigoRuta: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODAS">TODAS LAS RUTAS</option>
+            <option value="TODAS">Todas las rutas</option>
             {availableRutas.map(r => (
               <option key={r} value={r}>
                 {r}
@@ -184,15 +184,15 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
         {/* 5. Producto */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            LÍNEA PRODUCTO
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Línea de Producto
           </label>
           <select
             value={filters.producto}
             onChange={e => onFilterChange({ ...filters, producto: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODOS">TODAS LAS LÍNEAS</option>
+            <option value="TODOS">Todas las líneas</option>
             {availableProductos.map(p => (
               <option key={p} value={p}>
                 {p}
@@ -203,15 +203,15 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
         {/* 6. Vendedor */}
         <div>
-          <label className="block text-[10px] text-[#626D7C] uppercase tracking-wider mb-1">
-            VENDEDOR
+          <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+            Vendedor
           </label>
           <select
             value={filters.vendedor}
             onChange={e => onFilterChange({ ...filters, vendedor: e.target.value })}
-            className="w-full h-7 rounded-sm border border-[#242C37] bg-[#0B0D10] px-2 text-xs text-[#F1F5F9] font-mono focus:border-[#C5F467] focus:outline-hidden"
+            className="w-full h-8 rounded-md border border-[#374151] bg-[#111827] px-2.5 text-xs text-[#F9FAFB] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-hidden cursor-pointer"
           >
-            <option value="TODOS">TODOS LOS VENDEDORES</option>
+            <option value="TODOS">Todos los vendedores</option>
             {availableVendedores.map(v => (
               <option key={v} value={v}>
                 {v}
@@ -223,69 +223,69 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
       {/* Active Filter Indicators */}
       {isFiltered && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 pt-2.5 border-t border-[#242C37] text-[11px]">
-          <span className="text-[#626D7C]">FILTROS ACTIVOS:</span>
+        <div className="mt-3.5 flex flex-wrap items-center gap-2 pt-3 border-t border-[#374151] text-xs">
+          <span className="text-[#9CA3AF] font-medium text-[11px]">Filtros activos:</span>
           {filters.periodo !== 'TODOS' && (
             <button
               onClick={() => removeFilter('periodo')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Mes: {formatPeriodDisplay(filters.periodo)}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.zona !== 'TODAS' && (
             <button
               onClick={() => removeFilter('zona')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Zona: {filters.zona}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.supervisor !== 'TODOS' && (
             <button
               onClick={() => removeFilter('supervisor')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
-              <span>Sup: {filters.supervisor}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <span>Supervisor: {filters.supervisor}</span>
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.codigoRuta !== 'TODAS' && (
             <button
               onClick={() => removeFilter('codigoRuta')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Ruta: {filters.codigoRuta}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.producto !== 'TODOS' && (
             <button
               onClick={() => removeFilter('producto')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Línea: {filters.producto}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.vendedor !== 'TODOS' && (
             <button
               onClick={() => removeFilter('vendedor')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Vendedor: {filters.vendedor}</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
           {filters.busqueda && (
             <button
               onClick={() => removeFilter('busqueda')}
-              className="inline-flex items-center gap-1 border border-[#242C37] bg-[#0B0D10] px-2 py-0.5 text-[#F1F5F9] hover:border-[#FB7185] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#374151] bg-[#111827] px-2.5 py-1 text-[#F9FAFB] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
             >
               <span>Búsqueda: "{filters.busqueda}"</span>
-              <X className="h-3 w-3 text-[#626D7C]" />
+              <X className="h-3.5 w-3.5 text-[#6B7280]" />
             </button>
           )}
         </div>
@@ -293,8 +293,8 @@ export const GlobalFilters: React.FC<GlobalFiltersProps> = ({
 
       {/* Informative granularity notice */}
       {filters.producto !== 'TODOS' && (
-        <div className="mt-2.5 flex items-center gap-2 border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-1.5 text-[11px] text-[#F59E0B]">
-          <Info className="h-3.5 w-3.5 shrink-0" />
+        <div className="mt-3 flex items-center gap-2.5 rounded-md border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-2 text-xs text-[#F59E0B]">
+          <Info className="h-4 w-4 shrink-0" />
           <span>
             Granularidad de cobertura: DB_Cobertura mide clientes por ruta sin desglose por producto. La cobertura se calcula a nivel de ruta y vendedor.
           </span>
